@@ -1,0 +1,24 @@
+-- Migration: Create shopping cart tables
+
+CREATE TABLE IF NOT EXISTS shopping_carts (
+  cart_id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  total_amount DECIMAL(10, 2) NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+  UNIQUE KEY unique_user_cart (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS cart_items (
+  cart_item_id INT AUTO_INCREMENT PRIMARY KEY,
+  cart_id INT NOT NULL,
+  product_id INT NOT NULL,
+  quantity INT NOT NULL,
+  subtotal DECIMAL(10, 2) NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (cart_id) REFERENCES shopping_carts(cart_id) ON DELETE CASCADE,
+  FOREIGN KEY (product_id) REFERENCES products(product_id) ON DELETE RESTRICT,
+  UNIQUE KEY unique_cart_product (cart_id, product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

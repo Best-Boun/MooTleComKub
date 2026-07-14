@@ -9,6 +9,7 @@ const roleRoutes = require("./routes/roleRoutes");
 const systemRoutes = require("./routes/systemRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 const addressRoutes = require("./routes/addressRoutes");
+const cartRoutes = require("./routes/cartRoutes");
 
 const app = express();
   
@@ -20,6 +21,7 @@ app.use("/api/roles", roleRoutes);
 app.use("/api/system", systemRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/addresses", addressRoutes);
+app.use("/api/cart", cartRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running...");
