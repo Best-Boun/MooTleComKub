@@ -10,7 +10,7 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
     category_id: "",
     brand_id: "",
     sku: "",
-    image: product.image || "",
+    image: "",
     product_name: "",
     description: "",
     price: "",

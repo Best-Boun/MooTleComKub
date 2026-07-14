@@ -3,6 +3,9 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Homepage from "../pages/Homepage";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
+import ProductsPage from "../pages/Products";
+import ProductDetail from "../pages/ProductDetail";
+import Cart from "../pages/Cart";
 
 import Dashboard from "../pages/admin/Dashboard";
 import Categories from "../pages/admin/Categories";
@@ -15,6 +18,13 @@ import Reports from "../pages/admin/Reports";
 
 import PrivateRoute from "./PrivateRoute";
 import AdminLayout from "../components/layout/AdminLayout";
+
+const ComingSoon = ({ title }) => (
+  <div style={{ padding: "2rem" }}>
+    <h1>{title}</h1>
+    <p>Coming Soon</p>
+  </div>
+);
 
 export default function AppRoutes() {
   return (
@@ -32,10 +42,90 @@ export default function AppRoutes() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route
-          path="/pages/homepage"
+          path="/products"
           element={
             <PrivateRoute>
-              <Homepage />
+              <ProductsPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/products/:id"
+          element={
+            <PrivateRoute>
+              <ProductDetail />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/cart"
+          element={
+            <PrivateRoute>
+              <Cart />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/checkout"
+          element={
+            <PrivateRoute>
+              <ComingSoon title="Checkout" />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <PrivateRoute>
+              <ComingSoon title="Orders" />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/orders/:id"
+          element={
+            <PrivateRoute>
+              <ComingSoon title="Order Detail" />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/warranty"
+          element={
+            <PrivateRoute>
+              <ComingSoon title="Warranty" />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/warranty/:id"
+          element={
+            <PrivateRoute>
+              <ComingSoon title="Warranty Detail" />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/warranty-claims"
+          element={
+            <PrivateRoute>
+              <ComingSoon title="Warranty Claims" />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/warranty-claims/:id"
+          element={
+            <PrivateRoute>
+              <ComingSoon title="Warranty Claim Detail" />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/my-account"
+          element={
+            <PrivateRoute>
+              <ComingSoon title="My Account" />
             </PrivateRoute>
           }
         />

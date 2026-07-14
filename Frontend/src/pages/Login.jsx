@@ -95,7 +95,7 @@ const Login = () => {
         navigate("/admin/dashboard");
       } else {
         // Customer
-        navigate("/pages/homepage");
+        navigate("/");
       }
     } catch (err) {
       Swal.fire({
