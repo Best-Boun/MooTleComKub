@@ -50,6 +50,10 @@ class ProductController {
   // POST /api/products
   static async createProduct(req, res) {
     try {
+      if (req.file) {
+        req.body.image = `/uploads/${req.file.filename}`;
+      }
+
       const result = await ProductModel.createProduct(req.body);
 
       res.status(201).json({
@@ -70,6 +74,10 @@ class ProductController {
   // PUT /api/products/:id
   static async updateProduct(req, res) {
     try {
+      if (req.file) {
+        req.body.image = `/uploads/${req.file.filename}`;
+      }
+
       const result = await ProductModel.updateProduct(req.params.id, req.body);
 
       if (result.affectedRows === 0) {

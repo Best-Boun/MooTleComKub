@@ -46,6 +46,7 @@ class ProductModel {
       category_id,
       brand_id,
       sku,
+      image,
       product_name,
       description,
       price,
@@ -57,23 +58,25 @@ class ProductModel {
     const [result] = await db.query(
       `
       INSERT INTO products
-      (
-        category_id,
-        brand_id,
-        sku,
-        product_name,
-        description,
-        price,
-        stock,
-        warranty_provider,
-        status
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+(
+  category_id,
+  brand_id,
+  sku,
+  image,
+  product_name,
+  description,
+  price,
+  stock,
+  warranty_provider,
+  status
+)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         category_id,
         brand_id,
         sku,
+        image,
         product_name,
         description,
         price,
@@ -92,6 +95,7 @@ class ProductModel {
       category_id,
       brand_id,
       sku,
+      image,
       product_name,
       description,
       price,
@@ -104,10 +108,11 @@ class ProductModel {
       `
       UPDATE products
       SET
-        category_id = ?,
-        brand_id = ?,
-        sku = ?,
-        product_name = ?,
+  category_id = ?,
+  brand_id = ?,
+  sku = ?,
+  image = ?,
+  product_name = ?,
         description = ?,
         price = ?,
         stock = ?,
@@ -119,6 +124,7 @@ class ProductModel {
         category_id,
         brand_id,
         sku,
+        image,
         product_name,
         description,
         price,

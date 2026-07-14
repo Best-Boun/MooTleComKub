@@ -4,10 +4,13 @@ import productService from "../../services/productService";
 import Swal from "sweetalert2";
 
 export default function ProductForm({ mode, product, onSuccess, onClose }) {
+  const [preview, setPreview] = useState("");
+
   const [formData, setFormData] = useState({
     category_id: "",
     brand_id: "",
     sku: "",
+    image: product.image || "",
     product_name: "",
     description: "",
     price: "",
@@ -22,6 +25,7 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
         category_id: product.category_id || "",
         brand_id: product.brand_id || "",
         sku: product.sku || "",
+        image: product.image || "",
         product_name: product.product_name || "",
         description: product.description || "",
         price: product.price || "",
@@ -29,6 +33,12 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
         warranty_provider: product.warranty_provider || "",
         status: product.status || "ACTIVE",
       });
+
+      if (product.image) {
+        setPreview(`http://localhost:5000${product.image}`);
+      }
+    } else {
+      setPreview("");
     }
   }, [mode, product]);
 
@@ -41,12 +51,31 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
     }));
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+
+    if (file) {
+      setFormData((prev) => ({
+        ...prev,
+        image: file,
+      }));
+
+      setPreview(URL.createObjectURL(file));
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const submitData = new FormData();
+
+    Object.keys(formData).forEach((key) => {
+      submitData.append(key, formData[key]);
+    });
+
     try {
       if (mode === "add") {
-        await productService.createProduct(formData);
+        await productService.createProduct(submitData);
 
         Swal.fire({
           icon: "success",
@@ -54,7 +83,7 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
           text: "Product added successfully",
         });
       } else {
-        await productService.updateProduct(product.product_id, formData);
+        await productService.updateProduct(product.product_id, submitData);
 
         Swal.fire({
           icon: "success",
@@ -82,6 +111,7 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
         <Col md={6}>
           <Form.Group className="mb-3">
             <Form.Label>Category ID</Form.Label>
+
             <Form.Control
               name="category_id"
               value={formData.category_id}
@@ -94,6 +124,7 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
         <Col md={6}>
           <Form.Group className="mb-3">
             <Form.Label>Brand ID</Form.Label>
+
             <Form.Control
               name="brand_id"
               value={formData.brand_id}
@@ -106,6 +137,7 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
 
       <Form.Group className="mb-3">
         <Form.Label>SKU</Form.Label>
+
         <Form.Control
           name="sku"
           value={formData.sku}
@@ -115,7 +147,33 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
       </Form.Group>
 
       <Form.Group className="mb-3">
+        <Form.Label>Product Image</Form.Label>
+
+        <Form.Control
+          type="file"
+          accept="image/*"
+          onChange={handleImageChange}
+        />
+
+        {preview && (
+          <div className="mt-3">
+            <img
+              src={preview}
+              alt="preview"
+              width="150"
+              height="150"
+              style={{
+                objectFit: "cover",
+                borderRadius: "10px",
+              }}
+            />
+          </div>
+        )}
+      </Form.Group>
+
+      <Form.Group className="mb-3">
         <Form.Label>Product Name</Form.Label>
+
         <Form.Control
           name="product_name"
           value={formData.product_name}
@@ -126,6 +184,7 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
 
       <Form.Group className="mb-3">
         <Form.Label>Description</Form.Label>
+
         <Form.Control
           as="textarea"
           rows={3}
@@ -139,6 +198,7 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
         <Col md={6}>
           <Form.Group className="mb-3">
             <Form.Label>Price</Form.Label>
+
             <Form.Control
               type="number"
               name="price"
@@ -152,6 +212,7 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
         <Col md={6}>
           <Form.Group className="mb-3">
             <Form.Label>Stock</Form.Label>
+
             <Form.Control
               type="number"
               name="stock"
@@ -165,6 +226,7 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
 
       <Form.Group className="mb-3">
         <Form.Label>Warranty Provider</Form.Label>
+
         <Form.Control
           name="warranty_provider"
           value={formData.warranty_provider}
@@ -174,12 +236,14 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
 
       <Form.Group className="mb-4">
         <Form.Label>Status</Form.Label>
+
         <Form.Select
           name="status"
           value={formData.status}
           onChange={handleChange}
         >
           <option value="ACTIVE">ACTIVE</option>
+
           <option value="INACTIVE">INACTIVE</option>
         </Form.Select>
       </Form.Group>

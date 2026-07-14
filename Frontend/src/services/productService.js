@@ -15,13 +15,23 @@ const productService = {
 
   // เพิ่มสินค้า
   async createProduct(data) {
-    const response = await api.post("/products", data);
+    const response = await api.post("/products", data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
     return response.data;
   },
 
   // แก้ไขสินค้า
   async updateProduct(id, data) {
-    const response = await api.put(`/products/${id}`, data);
+    const response = await api.put(`/products/${id}`, data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
     return response.data;
   },
 

@@ -32,7 +32,9 @@ export default function ProductTable({ products, onDelete, onEdit }) {
               <td>
                 <img
                   src={
-                    product.image || "https://placehold.co/60x60?text=No+Image"
+                    product.image
+                      ? `http://localhost:5000${product.image}`
+                      : "https://placehold.co/60x60?text=No+Image"
                   }
                   alt={product.product_name}
                   width="60"
