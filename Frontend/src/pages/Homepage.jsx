@@ -6,6 +6,16 @@ export default function Homepage() {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
 
+  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("role");
+    sessionStorage.removeItem("token");
+    navigate("/login");
+  };
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -23,6 +33,19 @@ export default function Homepage() {
 
   return (
     <div className="container py-4">
+      {token && (
+        <div className="d-flex justify-content-end mb-3">
+          <button
+            type="button"
+            className="btn btn-outline-danger btn-sm"
+            onClick={handleLogout}
+          >
+            <i className="bi bi-box-arrow-right me-1"></i>
+            Logout
+          </button>
+        </div>
+      )}
+
       <section className="mb-5">
         <h1 className="fw-bold mb-2">Welcome to TleComKub</h1>
         <p className="mb-3">Computer Sets & Notebooks</p>
