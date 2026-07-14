@@ -36,7 +36,14 @@ export default function AppRoutes() {
           <Route path="products" element={<Products />} />
           <Route path="orders" element={<Orders />} />
           <Route path="customers" element={<Customers />} />
-          <Route path="reports" element={<Reports />} />
+          <Route
+            path="reports"
+            element={
+              <PrivateRoute allowedRoles={[3]}>
+                <Reports />
+              </PrivateRoute>
+            }
+          />
         </Route>
 
         {/* Default */}
