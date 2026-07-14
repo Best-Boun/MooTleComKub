@@ -11,6 +11,7 @@ const categoryRoutes = require("./routes/categoryRoutes");
 const addressRoutes = require("./routes/addressRoutes");
 const productRoutes = require("./routes/productRoutes");
 const cartRoutes = require("./routes/cartRoutes");
+const orderRoutes = require("./routes/orderRoutes");
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use("/api/categories", categoryRoutes);
 app.use("/api/addresses", addressRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
+app.use("/api/orders", orderRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running...");
