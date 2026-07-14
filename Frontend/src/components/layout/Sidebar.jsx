@@ -2,6 +2,9 @@ import { NavLink, Link } from "react-router-dom";
 import { Button } from "react-bootstrap";
 
 export default function Sidebar() {
+  const storedUser = JSON.parse(localStorage.getItem("user") || "null");
+  const isSuperAdmin = storedUser?.role_id === 3;
+
   return (
     <div
       className="bg-dark text-white p-3 d-flex flex-column"
@@ -38,10 +41,12 @@ export default function Sidebar() {
           Customers
         </NavLink>
 
-        <NavLink to="/admin/reports" className="nav-link text-white">
-          <i className="bi bi-bar-chart me-2"></i>
-          Reports
-        </NavLink>
+        {isSuperAdmin && (
+          <NavLink to="/admin/reports" className="nav-link text-white">
+            <i className="bi bi-bar-chart me-2"></i>
+            Reports
+          </NavLink>
+        )}
       </div>
 
       {/* Back to Store */}
