@@ -6,14 +6,16 @@ const db = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 const addressRoutes = require("./routes/addressRoutes");
+const productRoutes = require("./routes/productRoutes");
 
 const app = express();
-  
+
 app.use(cors());
 app.use(express.json());
 app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/addresses", addressRoutes);
+app.use("/api/products", productRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running...");
