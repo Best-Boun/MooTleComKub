@@ -7,6 +7,8 @@ import ProductsPage from "../pages/Products";
 import ProductDetail from "../pages/ProductDetail";
 import Cart from "../pages/Cart";
 import Checkout from "../pages/Checkout";
+import MyOrders from "../pages/Orders";
+import OrderDetail from "../pages/OrderDetail";
 
 import Dashboard from "../pages/admin/Dashboard";
 import Categories from "../pages/admin/Categories";
@@ -78,7 +80,7 @@ export default function AppRoutes() {
           path="/orders"
           element={
             <PrivateRoute>
-              <ComingSoon title="Orders" />
+              <MyOrders />
             </PrivateRoute>
           }
         />
@@ -86,7 +88,7 @@ export default function AppRoutes() {
           path="/orders/:id"
           element={
             <PrivateRoute>
-              <ComingSoon title="Order Detail" />
+              <OrderDetail />
             </PrivateRoute>
           }
         />

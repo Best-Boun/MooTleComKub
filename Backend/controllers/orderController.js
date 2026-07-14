@@ -33,6 +33,17 @@ class OrderController {
         });
       }
 
+      const userId = req.user.user_id;
+      const isOwner = order.order.user_id === userId;
+      const isAdmin = req.user.role_id === 2 || req.user.role_id === 3;
+
+      if (!isOwner && !isAdmin) {
+        return res.status(403).json({
+          success: false,
+          message: "Unauthorized - order does not belong to user",
+        });
+      }
+
       res.status(200).json({
         success: true,
         data: order,

@@ -14,7 +14,7 @@ router.get("/my", authMiddleware, OrderController.getMyOrders);
 router.get("/", OrderController.getAllOrders);
 
 // ดูรายละเอียดออเดอร์
-router.get("/:id", OrderController.getOrderById);
+router.get("/:id", authMiddleware, OrderController.getOrderById);
 
 // อัปเดตสถานะออเดอร์
 router.put("/:id/status", OrderController.updateOrderStatus);
