@@ -3,7 +3,7 @@ const db = require("../config/db");
 class AddressModel {
   static async getAllByUser(userId) {
     const [rows] = await db.query(
-      `SELECT id, user_id, full_name, phone, address_line, subdistrict, district, province, postal_code, is_default, created_at, updated_at
+      `SELECT address_id, user_id, recipient_name, phone, address_line, subdistrict, district, province, postal_code, is_default, created_at, updated_at
        FROM addresses
        WHERE user_id = ?
        ORDER BY is_default DESC, updated_at DESC`,
@@ -15,9 +15,9 @@ class AddressModel {
 
   static async findById(id) {
     const [rows] = await db.query(
-      `SELECT id, user_id, full_name, phone, address_line, subdistrict, district, province, postal_code, is_default, created_at, updated_at
+      `SELECT address_id, user_id, recipient_name, phone, address_line, subdistrict, district, province, postal_code, is_default, created_at, updated_at
        FROM addresses
-       WHERE id = ?
+       WHERE address_id = ?
        LIMIT 1`,
       [id],
     );
@@ -54,11 +54,11 @@ class AddressModel {
 
       const [result] = await connection.query(
         `INSERT INTO addresses
-          (user_id, full_name, phone, address_line, subdistrict, district, province, postal_code, is_default)
+          (user_id, recipient_name, phone, address_line, subdistrict, district, province, postal_code, is_default)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           userId,
-          addressData.full_name,
+          addressData.recipient_name,
           addressData.phone,
           addressData.address_line,
           addressData.subdistrict,
@@ -101,9 +101,9 @@ class AddressModel {
       const fields = [];
       const params = [];
 
-      if (addressData.full_name !== undefined) {
-        fields.push(`full_name = ?`);
-        params.push(addressData.full_name);
+      if (addressData.recipient_name !== undefined) {
+        fields.push(`recipient_name = ?`);
+        params.push(addressData.recipient_name);
       }
       if (addressData.phone !== undefined) {
         fields.push(`phone = ?`);
@@ -137,27 +137,27 @@ class AddressModel {
       if (fields.length > 0) {
         params.push(id, userId);
         await connection.query(
-          `UPDATE addresses SET ${fields.join(", ")} WHERE id = ? AND user_id = ?`,
+          `UPDATE addresses SET ${fields.join(", ")} WHERE address_id = ? AND user_id = ?`,
           params,
         );
       }
 
       if (addressData.is_default === false && existingAddress.is_default === 1) {
         const [activeDefault] = await connection.query(
-          `SELECT id FROM addresses WHERE user_id = ? AND id != ? AND is_default = 1 LIMIT 1`,
+          `SELECT address_id FROM addresses WHERE user_id = ? AND address_id != ? AND is_default = 1 LIMIT 1`,
           [userId, id],
         );
 
         if (activeDefault.length === 0) {
           const [fallbackRows] = await connection.query(
-            `SELECT id FROM addresses WHERE user_id = ? AND id != ? ORDER BY updated_at DESC LIMIT 1`,
+            `SELECT address_id FROM addresses WHERE user_id = ? AND address_id != ? ORDER BY updated_at DESC LIMIT 1`,
             [userId, id],
           );
 
           if (fallbackRows.length > 0) {
             await connection.query(
-              `UPDATE addresses SET is_default = 1 WHERE id = ?`,
-              [fallbackRows[0].id],
+              `UPDATE addresses SET is_default = 1 WHERE address_id = ?`,
+              [fallbackRows[0].address_id],
             );
           }
         }
@@ -189,7 +189,7 @@ class AddressModel {
         [userId],
       );
       await connection.query(
-        `UPDATE addresses SET is_default = 1 WHERE id = ? AND user_id = ?`,
+        `UPDATE addresses SET is_default = 1 WHERE address_id = ? AND user_id = ?`,
         [id, userId],
       );
 
@@ -209,7 +209,7 @@ class AddressModel {
       await connection.beginTransaction();
 
       const [rows] = await connection.query(
-        `SELECT id, is_default FROM addresses WHERE id = ? AND user_id = ? LIMIT 1 FOR UPDATE`,
+        `SELECT address_id, is_default FROM addresses WHERE address_id = ? AND user_id = ? LIMIT 1 FOR UPDATE`,
         [id, userId],
       );
 
@@ -219,18 +219,18 @@ class AddressModel {
       }
 
       const address = rows[0];
-      await connection.query(`DELETE FROM addresses WHERE id = ? AND user_id = ?`, [id, userId]);
+      await connection.query(`DELETE FROM addresses WHERE address_id = ? AND user_id = ?`, [id, userId]);
 
       if (address.is_default === 1) {
         const [fallbackRows] = await connection.query(
-          `SELECT id FROM addresses WHERE user_id = ? ORDER BY updated_at DESC LIMIT 1`,
+          `SELECT address_id FROM addresses WHERE user_id = ? ORDER BY updated_at DESC LIMIT 1`,
           [userId],
         );
 
         if (fallbackRows.length > 0) {
           await connection.query(
-            `UPDATE addresses SET is_default = 1 WHERE id = ?`,
-            [fallbackRows[0].id],
+            `UPDATE addresses SET is_default = 1 WHERE address_id = ?`,
+            [fallbackRows[0].address_id],
           );
         }
       }

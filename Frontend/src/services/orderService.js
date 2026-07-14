@@ -7,6 +7,18 @@ const orderService = {
     return response.data;
   },
 
+  // ดึงออเดอร์ของผู้ใช้ปัจจุบัน
+  async getMyOrders() {
+    const response = await api.get("/orders/my");
+    return response.data;
+  },
+
+  // สร้างออเดอร์จากตะกร้าปัจจุบัน
+  async createOrder(addressId) {
+    const response = await api.post("/orders", { address_id: addressId });
+    return response.data;
+  },
+
   // ดึงรายละเอียดออเดอร์
   async getOrderById(id) {
     const response = await api.get(`/orders/${id}`);

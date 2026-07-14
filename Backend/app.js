@@ -35,6 +35,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/warranties", warrantyRoutes);
 app.use("/api/warranty-claims", warrantyClaimRoutes);
+app.use("/api/payments", paymentRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running...");

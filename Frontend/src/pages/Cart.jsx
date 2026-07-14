@@ -439,7 +439,7 @@ export default function Cart() {
                   type="button"
                   className="tck-cart-checkout"
                   disabled={items.length === 0}
-                  onClick={() => navigate("/orders")}
+                  onClick={() => navigate("/checkout")}
                 >
                   ดำเนินการชำระเงิน →
                 </button>

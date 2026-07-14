@@ -6,6 +6,7 @@ import Register from "../pages/Register";
 import ProductsPage from "../pages/Products";
 import ProductDetail from "../pages/ProductDetail";
 import Cart from "../pages/Cart";
+import Checkout from "../pages/Checkout";
 
 import Dashboard from "../pages/admin/Dashboard";
 import Categories from "../pages/admin/Categories";
@@ -69,7 +70,7 @@ export default function AppRoutes() {
           path="/checkout"
           element={
             <PrivateRoute>
-              <ComingSoon title="Checkout" />
+              <Checkout />
             </PrivateRoute>
           }
         />

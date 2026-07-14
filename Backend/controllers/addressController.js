@@ -3,7 +3,7 @@ const AddressModel = require("../models/addressModel");
 const validateAddressPayload = (payload, requireAllFields = true) => {
   const errors = [];
   const requiredFields = [
-    "full_name",
+    "recipient_name",
     "phone",
     "address_line",
     "subdistrict",
