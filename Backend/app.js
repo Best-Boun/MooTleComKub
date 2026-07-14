@@ -4,18 +4,26 @@ require("dotenv").config();
 
 const db = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+const roleRoutes = require("./routes/roleRoutes");
+const systemRoutes = require("./routes/systemRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 const addressRoutes = require("./routes/addressRoutes");
 const productRoutes = require("./routes/productRoutes");
+const cartRoutes = require("./routes/cartRoutes");
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
 app.use("/api/auth", authRoutes);
+app.use("/api/admins", adminRoutes);
+app.use("/api/roles", roleRoutes);
+app.use("/api/system", systemRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/addresses", addressRoutes);
 app.use("/api/products", productRoutes);
+app.use("/api/cart", cartRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running...");
