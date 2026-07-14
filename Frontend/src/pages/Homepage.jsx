@@ -33,6 +33,8 @@ function PortRail() {
 export default function Homepage() {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
+  const [addingId, setAddingId] = useState(null);
+  const [cartMessage, setCartMessage] = useState("");
 
   const token = localStorage.getItem("token") || sessionStorage.getItem("token");
 
