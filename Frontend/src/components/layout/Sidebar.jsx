@@ -1,11 +1,18 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, Link } from "react-router-dom";
+import { Button } from "react-bootstrap";
 
 export default function Sidebar() {
   return (
-    <div className="bg-dark text-white p-3" style={{ width: "260px" }}>
+    <div
+      className="bg-dark text-white p-3 d-flex flex-column"
+      style={{
+        width: "260px",
+        minHeight: "100vh",
+      }}
+    >
       <h4 className="text-center mb-4">Summer Admin</h4>
 
-      <div className="nav flex-column">
+      <div className="nav flex-column flex-grow-1">
         <NavLink to="/admin/dashboard" className="nav-link text-white">
           <i className="bi bi-speedometer2 me-2"></i>
           Dashboard
@@ -35,6 +42,17 @@ export default function Sidebar() {
           <i className="bi bi-bar-chart me-2"></i>
           Reports
         </NavLink>
+      </div>
+
+      {/* Back to Store */}
+
+      <div className="mt-auto">
+        <Link to="/" className="text-decoration-none">
+          <Button variant="outline-light" className="w-100">
+            <i className="bi bi-arrow-left me-2"></i>
+            Back to Store
+          </Button>
+        </Link>
       </div>
     </div>
   );
