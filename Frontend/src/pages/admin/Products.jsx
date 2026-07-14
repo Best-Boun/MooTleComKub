@@ -1,0 +1,165 @@
+import { useEffect, useState } from "react";
+import { Button, Card, Spinner } from "react-bootstrap";
+import Swal from "sweetalert2";
+
+import productService from "../../services/productService";
+import ProductTable from "../../components/products/ProductTable";
+import ProductFilter from "../../components/products/ProductFilter";
+import CustomPagination from "../../components/common/Pagination";
+import ProductModal from "../../components/products/ProductModal";
+
+export default function Products() {
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("");
+  const [status, setStatus] = useState("");
+
+  const [showModal, setShowModal] = useState(false);
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 10;
+
+  // โหลดข้อมูลสินค้า
+  const fetchProducts = async () => {
+    try {
+      setLoading(true);
+
+      const res = await productService.getAllProducts();
+
+      setProducts(res.data);
+    } catch (error) {
+      console.error(error);
+
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to load products",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  // ลบสินค้า
+  const handleDelete = async (id) => {
+    const result = await Swal.fire({
+      title: "Delete Product?",
+      text: "คุณต้องการลบสินค้านี้หรือไม่",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#dc3545",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const res = await productService.deleteProduct(id);
+
+      if (res.success) {
+        await Swal.fire({
+          icon: "success",
+          title: "Deleted!",
+          text: res.message,
+          timer: 1200,
+          showConfirmButton: false,
+        });
+
+        fetchProducts();
+      }
+    } catch (err) {
+      Swal.fire({
+        icon: "error",
+        title: "Delete Failed",
+        text: err.response?.data?.message || "Something went wrong",
+      });
+    }
+  };
+
+  // Filter
+  const filteredProducts = products.filter((product) => {
+    const matchSearch =
+      product.product_name.toLowerCase().includes(search.toLowerCase()) ||
+      product.brand_name.toLowerCase().includes(search.toLowerCase());
+
+    const matchCategory = category === "" || product.category_name === category;
+
+    const matchStatus = status === "" || product.status === status;
+
+    return matchSearch && matchCategory && matchStatus;
+  });
+
+  // Pagination
+  const indexOfLastProduct = currentPage * productsPerPage;
+
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+
+  const currentProducts = filteredProducts.slice(
+    indexOfFirstProduct,
+    indexOfLastProduct,
+  );
+
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+
+  return (
+    <>
+      <Card className="shadow-sm border-0">
+        <Card.Body>
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h3 className="fw-bold mb-0">Products</h3>
+
+            <Button variant="primary" onClick={() => setShowModal(true)}>
+              + Add Product
+            </Button>
+          </div>
+
+          <ProductFilter
+            search={search}
+            setSearch={setSearch}
+            category={category}
+            setCategory={setCategory}
+            status={status}
+            setStatus={setStatus}
+          />
+
+          {loading ? (
+            <div className="text-center py-5">
+              <Spinner animation="border" />
+            </div>
+          ) : (
+            <>
+              <ProductTable
+                products={currentProducts}
+                onDelete={handleDelete}
+              />
+
+              <CustomPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                setCurrentPage={setCurrentPage}
+              />
+            </>
+          )}
+        </Card.Body>
+      </Card>
+
+      <ProductModal
+        show={showModal}
+        handleClose={() => setShowModal(false)}
+        onSubmit={() => {
+          setShowModal(false);
+          fetchProducts();
+        }}
+      />
+    </>
+  );
+}
