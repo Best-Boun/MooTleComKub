@@ -1,27 +1,25 @@
 import { Modal } from "react-bootstrap";
-import ProductForm from "./ProductForm";
+import CategoryForm from "./CategoryForm";
 
-export default function ProductModal({
+export default function CategoryModal({
   show,
   onHide,
   mode,
-  product,
-  categories,
+  category,
   onSuccess,
 }) {
   return (
-    <Modal show={show} onHide={onHide} size="lg" centered>
+    <Modal show={show} onHide={onHide} centered>
       <Modal.Header closeButton>
         <Modal.Title>
-          {mode === "add" ? "Add Product" : "Edit Product"}
+          {mode === "add" ? "Add Category" : "Edit Category"}
         </Modal.Title>
       </Modal.Header>
 
       <Modal.Body>
-        <ProductForm
+        <CategoryForm
           mode={mode}
-          product={product}
-          categories={categories}
+          category={category}
           onSuccess={onSuccess}
           onClose={onHide}
         />

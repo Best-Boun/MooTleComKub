@@ -18,6 +18,9 @@ export default function Products() {
 
   const [showModal, setShowModal] = useState(false);
 
+  const [mode, setMode] = useState("add");
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 10;
@@ -85,6 +88,26 @@ export default function Products() {
     }
   };
 
+  // เพิ่มสินค้า
+  const handleAdd = () => {
+    setMode("add");
+    setSelectedProduct(null);
+    setShowModal(true);
+  };
+
+  // แก้ไขสินค้า
+  const handleEdit = (product) => {
+    setMode("edit");
+    setSelectedProduct(product);
+    setShowModal(true);
+  };
+
+  // บันทึกสำเร็จ
+  const handleSuccess = () => {
+    setShowModal(false);
+    fetchProducts();
+  };
+
   // Filter
   const filteredProducts = products.filter((product) => {
     const matchSearch =
@@ -117,7 +140,7 @@ export default function Products() {
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h3 className="fw-bold mb-0">Products</h3>
 
-            <Button variant="primary" onClick={() => setShowModal(true)}>
+            <Button variant="primary" onClick={handleAdd}>
               + Add Product
             </Button>
           </div>
@@ -140,6 +163,7 @@ export default function Products() {
               <ProductTable
                 products={currentProducts}
                 onDelete={handleDelete}
+                onEdit={handleEdit}
               />
 
               <CustomPagination
@@ -154,11 +178,11 @@ export default function Products() {
 
       <ProductModal
         show={showModal}
-        handleClose={() => setShowModal(false)}
-        onSubmit={() => {
-          setShowModal(false);
-          fetchProducts();
-        }}
+        onHide={() => setShowModal(false)}
+        mode={mode}
+        product={selectedProduct}
+        categories={[]}
+        onSuccess={handleSuccess}
       />
     </>
   );
