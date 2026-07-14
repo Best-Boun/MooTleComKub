@@ -21,10 +21,24 @@ export default function AppRoutes() {
     <BrowserRouter>
       <Routes>
         {/* Public */}
-        <Route path="/" element={<Homepage />} />
+        <Route
+          path="/"
+          element={
+            <PrivateRoute>
+              <Homepage />
+            </PrivateRoute>
+          }
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/pages/homepage" element={<Homepage />} />
+        <Route
+          path="/pages/homepage"
+          element={
+            <PrivateRoute>
+              <Homepage />
+            </PrivateRoute>
+          }
+        />
 
         {/* Admin */}
         <Route
@@ -51,7 +65,7 @@ export default function AppRoutes() {
         </Route>
 
         {/* Default */}
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
   );
