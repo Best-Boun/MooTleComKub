@@ -9,6 +9,7 @@ import Products from "../pages/admin/Products";
 import Orders from "../pages/admin/Orders";
 import Customers from "../pages/admin/Customers";
 import Reports from "../pages/admin/Reports";
+import Homepage from "../pages/Homepage";
 
 
 import PrivateRoute from "./PrivateRoute";
@@ -21,6 +22,7 @@ export default function AppRoutes() {
         {/* Public */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/pages/homepage" element={<Homepage />} />
 
         {/* Admin */}
         <Route

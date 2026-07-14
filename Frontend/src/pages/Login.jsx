@@ -91,19 +91,11 @@ const Login = () => {
 
       // Redirect
       if (user.role_id === 2 || user.role_id === 3) {
+        // Admin / Superadmin
         navigate("/admin/dashboard");
       } else {
-        await Swal.fire({
-          icon: "error",
-          title: "Access Denied",
-          text: "คุณไม่มีสิทธิ์เข้าใช้งานระบบ Admin",
-        });
-
-        localStorage.removeItem("token");
-        sessionStorage.removeItem("token");
-        localStorage.removeItem("user");
-
-        navigate("/login");
+        // Customer
+        navigate("/pages/homepage");
       }
     } catch (err) {
       Swal.fire({
@@ -132,7 +124,7 @@ const Login = () => {
                   style={{ fontSize: "60px" }}
                 ></i>
 
-                <h2 className="fw-bold mt-3">Admin Login</h2>
+                <h2 className="fw-bold mt-3">Login</h2>
 
                 <p className="text-muted">Sign in to continue</p>
               </div>
