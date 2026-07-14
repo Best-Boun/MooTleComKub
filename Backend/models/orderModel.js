@@ -83,6 +83,179 @@ class OrderModel {
 
     return result;
   }
+
+  // สร้างออเดอร์จากตะกร้าของลูกค้า
+  static async createOrder(userId, addressId) {
+    const connection = await db.getConnection();
+
+    try {
+      await connection.beginTransaction();
+
+      const [cartRows] = await connection.query(
+        `SELECT cart_id FROM shopping_carts WHERE user_id = ? LIMIT 1 FOR UPDATE`,
+        [userId],
+      );
+
+      if (cartRows.length === 0) {
+        await connection.rollback();
+        return { success: false, error: "Cart not found" };
+      }
+
+      const cartId = cartRows[0].cart_id;
+
+      const [cartItems] = await connection.query(
+        `
+        SELECT
+          ci.product_id,
+          ci.quantity,
+          ci.subtotal,
+          p.product_name,
+          p.price
+        FROM cart_items ci
+        LEFT JOIN products p
+          ON ci.product_id = p.product_id
+        WHERE ci.cart_id = ?
+        `,
+        [cartId],
+      );
+
+      if (cartItems.length === 0) {
+        await connection.rollback();
+        return { success: false, error: "Cart is empty" };
+      }
+
+      const [addressRows] = await connection.query(
+        `
+        SELECT
+          address_id,
+          recipient_name,
+          phone,
+          address_line,
+          subdistrict,
+          district,
+          province,
+          postal_code
+        FROM addresses
+        WHERE address_id = ? AND user_id = ?
+        LIMIT 1
+        `,
+        [addressId, userId],
+      );
+
+      if (addressRows.length === 0) {
+        await connection.rollback();
+        return { success: false, error: "Address not found" };
+      }
+
+      const address = addressRows[0];
+      const totalAmount = cartItems.reduce(
+        (sum, item) => sum + Number(item.subtotal || 0),
+        0,
+      );
+      const orderNumber = `ORD${Date.now()}${Math.floor(Math.random() * 1000)}`;
+      const [orderResult] = await connection.query(
+        `
+        INSERT INTO orders (
+          order_number,
+          user_id,
+          address_id,
+          shipping_name,
+          shipping_phone,
+          shipping_address,
+          shipping_subdistrict,
+          shipping_district,
+          shipping_province,
+          shipping_postal_code,
+          total_amount,
+          order_status,
+          order_date
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        `,
+        [
+          orderNumber,
+          userId,
+          address.address_id,
+          address.recipient_name,
+          address.phone,
+          address.address_line,
+          address.subdistrict,
+          address.district,
+          address.province,
+          address.postal_code,
+          totalAmount,
+          "PENDING",
+        ],
+      );
+
+      const orderId = orderResult.insertId;
+
+      for (const item of cartItems) {
+        await connection.query(
+          `
+          INSERT INTO order_items (
+            order_id,
+            product_id,
+            quantity,
+            unit_price,
+            subtotal
+          )
+          VALUES (?, ?, ?, ?, ?)
+          `,
+          [
+            orderId,
+            item.product_id,
+            item.quantity,
+            Number(item.price || 0),
+            Number(item.subtotal || 0),
+          ],
+        );
+      }
+
+      await connection.query(`DELETE FROM cart_items WHERE cart_id = ?`, [cartId]);
+
+      await connection.commit();
+
+      return {
+        success: true,
+        orderId,
+      };
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  }
+
+  // ดึงออเดอร์ของผู้ใช้งานที่ล็อกอิน
+  static async getOrdersByUserId(userId) {
+    const [rows] = await db.query(
+      `
+      SELECT
+        order_id,
+        order_number,
+        user_id,
+        address_id,
+        shipping_name,
+        shipping_phone,
+        shipping_address,
+        shipping_subdistrict,
+        shipping_district,
+        shipping_province,
+        shipping_postal_code,
+        total_amount,
+        order_status,
+        order_date
+      FROM orders
+      WHERE user_id = ?
+      ORDER BY order_date DESC
+      `,
+      [userId],
+    );
+
+    return rows;
+  }
 }
 
 module.exports = OrderModel;

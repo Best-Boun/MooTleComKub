@@ -2,6 +2,13 @@ const express = require("express");
 const router = express.Router();
 
 const OrderController = require("../controllers/orderController");
+const authMiddleware = require("../middlewares/authMiddleware");
+
+// สร้างออเดอร์จากตะกร้าของลูกค้า
+router.post("/", authMiddleware, OrderController.createOrder);
+
+// ดูออเดอร์ของผู้ใช้งานที่ล็อกอิน
+router.get("/my", authMiddleware, OrderController.getMyOrders);
 
 // ดูออเดอร์ทั้งหมด
 router.get("/", OrderController.getAllOrders);
