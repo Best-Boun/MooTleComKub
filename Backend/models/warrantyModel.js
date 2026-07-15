@@ -64,6 +64,84 @@ class WarrantyModel {
 		return rows[0];
 	}
 
+	// ระบบ: สร้าง Warranty ให้ทุก order_item ของ order เมื่อสถานะเป็น DELIVERED
+	static async createWarrantiesForOrder(orderId) {
+		const connection = await db.getConnection();
+
+		try {
+			await connection.beginTransaction();
+
+			const [orderItems] = await connection.query(
+				`
+				SELECT
+					oi.order_item_id,
+					p.warranty_provider
+				FROM order_items oi
+				LEFT JOIN products p
+					ON oi.product_id = p.product_id
+				WHERE oi.order_id = ?
+				`,
+				[orderId],
+			);
+
+			let createdCount = 0;
+
+			for (const item of orderItems) {
+				const [existingRows] = await connection.query(
+					`SELECT warranty_id FROM warranties WHERE order_item_id = ? LIMIT 1`,
+					[item.order_item_id],
+				);
+
+				if (existingRows.length > 0) {
+					continue;
+				}
+
+				let serialNumber = "";
+				let isUnique = false;
+
+				while (!isUnique) {
+					serialNumber = `SN${Date.now()}${Math.floor(Math.random() * 1000)}`;
+
+					const [existingSerialRows] = await connection.query(
+						`SELECT warranty_id FROM warranties WHERE serial_number = ? LIMIT 1`,
+						[serialNumber],
+					);
+
+					if (existingSerialRows.length === 0) {
+						isUnique = true;
+					}
+				}
+
+				await connection.query(
+					`
+					INSERT INTO warranties
+					(
+						order_item_id,
+						serial_number,
+						warranty_provider,
+						warranty_start_date,
+						warranty_end_date,
+						warranty_status
+					)
+					VALUES (?, ?, ?, NOW(), NOW() + INTERVAL 3 YEAR, 'ACTIVE')
+					`,
+					[item.order_item_id, serialNumber, item.warranty_provider || null],
+				);
+
+				createdCount += 1;
+			}
+
+			await connection.commit();
+
+			return createdCount;
+		} catch (error) {
+			await connection.rollback();
+			throw error;
+		} finally {
+			connection.release();
+		}
+	}
+
 	// ลูกค้า: สร้างเคลมประกัน
 	static async createClaim(userId, warrantyId, problemDescription) {
 		const [warrantyRows] = await db.query(

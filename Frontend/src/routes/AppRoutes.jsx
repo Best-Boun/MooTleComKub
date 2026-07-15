@@ -9,6 +9,11 @@ import Cart from "../pages/Cart";
 import Checkout from "../pages/Checkout";
 import MyOrders from "../pages/Orders";
 import OrderDetail from "../pages/OrderDetail";
+import Warranty from "../pages/Warranty";
+import WarrantyDetail from "../pages/WarrantyDetail";
+import WarrantyClaimNew from "../pages/WarrantyClaimNew";
+import WarrantyClaims from "../pages/WarrantyClaims";
+import WarrantyClaimDetail from "../pages/WarrantyClaimDetail";
 
 import Dashboard from "../pages/admin/Dashboard";
 import Categories from "../pages/admin/Categories";
@@ -16,6 +21,7 @@ import Products from "../pages/admin/Products";
 import Orders from "../pages/admin/Orders";
 import Customers from "../pages/admin/Customers";
 import Reports from "../pages/admin/Reports";
+import AdminWarrantyClaims from "../pages/admin/WarrantyClaims";
 
 
 
@@ -96,7 +102,7 @@ export default function AppRoutes() {
           path="/warranty"
           element={
             <PrivateRoute>
-              <ComingSoon title="Warranty" />
+              <Warranty />
             </PrivateRoute>
           }
         />
@@ -104,7 +110,15 @@ export default function AppRoutes() {
           path="/warranty/:id"
           element={
             <PrivateRoute>
-              <ComingSoon title="Warranty Detail" />
+              <WarrantyDetail />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/warranty-claims/new"
+          element={
+            <PrivateRoute>
+              <WarrantyClaimNew />
             </PrivateRoute>
           }
         />
@@ -112,7 +126,7 @@ export default function AppRoutes() {
           path="/warranty-claims"
           element={
             <PrivateRoute>
-              <ComingSoon title="Warranty Claims" />
+              <WarrantyClaims />
             </PrivateRoute>
           }
         />
@@ -120,7 +134,7 @@ export default function AppRoutes() {
           path="/warranty-claims/:id"
           element={
             <PrivateRoute>
-              <ComingSoon title="Warranty Claim Detail" />
+              <WarrantyClaimDetail />
             </PrivateRoute>
           }
         />
@@ -146,6 +160,7 @@ export default function AppRoutes() {
           <Route path="categories" element={<Categories />} />
           <Route path="products" element={<Products />} />
           <Route path="orders" element={<Orders />} />
+          <Route path="warranty-claims" element={<AdminWarrantyClaims />} />
           <Route path="customers" element={<Customers />} />
           <Route
             path="reports"

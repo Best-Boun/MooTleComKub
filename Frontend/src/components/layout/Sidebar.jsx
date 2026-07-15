@@ -36,6 +36,11 @@ export default function Sidebar() {
           Orders
         </NavLink>
 
+        <NavLink to="/admin/warranty-claims" className="nav-link text-white">
+          <i className="bi bi-shield-check me-2"></i>
+          Warranty Claims
+        </NavLink>
+
         <NavLink to="/admin/customers" className="nav-link text-white">
           <i className="bi bi-people me-2"></i>
           Customers
