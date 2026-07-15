@@ -1,9 +1,9 @@
 -- Migration: Create addresses table for customer address management
 
 CREATE TABLE IF NOT EXISTS addresses (
-  id INT AUTO_INCREMENT PRIMARY KEY,
+  address_id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
-  full_name VARCHAR(255) NOT NULL,
+  recipient_name VARCHAR(255) NOT NULL,
   phone VARCHAR(50) NOT NULL,
   address_line TEXT NOT NULL,
   subdistrict VARCHAR(255) NOT NULL,

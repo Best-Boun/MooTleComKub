@@ -104,27 +104,18 @@ class PaymentModel {
         [orderId, paymentMethod, amount, transactionId],
       );
 
-      await connection.commit();
+        await connection.query(
+          `UPDATE orders SET order_status = 'PAID' WHERE order_id = ?`,
+          [orderId],
+        );
 
-      return {
-        success: true,
-        paymentId: paymentResult.insertId,
-        transactionId,
-      };
-    } catch (error) {
-      await connection.rollback();
-      throw error;
-    } finally {
-      connection.release();
-    }
-  }
+        const [[cart]] = await connection.query(
+          `SELECT cart_id FROM shopping_carts WHERE user_id = ? LIMIT 1`,
+          [userId],
+        );
 
-  // Generate random transaction ID
-  static generateTransactionId() {
-    const timestamp = new Date().getTime();
-    const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-    return `TX${timestamp.toString().slice(-8)}${random}`;
-  }
-}
+        if (cart) {
+          await connection.query(`DELETE FROM cart_items WHERE cart_id = ?`, [cart.cart_id]);
+          await connection.query(`UPDATE shopping_carts SET total_amount = 0 WHERE cart_id = ?`, [cart.cart_id]);
+        }
 
-module.exports = PaymentModel;

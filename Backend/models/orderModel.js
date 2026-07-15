@@ -212,8 +212,6 @@ class OrderModel {
         );
       }
 
-      await connection.query(`DELETE FROM cart_items WHERE cart_id = ?`, [cartId]);
-
       await connection.commit();
 
       return {
