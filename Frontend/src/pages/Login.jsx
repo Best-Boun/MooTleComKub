@@ -89,14 +89,9 @@ const Login = () => {
         showConfirmButton: false,
       });
 
-      // Redirect
-      if (user.role_id === 2 || user.role_id === 3) {
-        // Admin / Superadmin
-        navigate("/admin/dashboard");
-      } else {
-        // Customer
-        navigate("/");
-      }
+      
+      // Redirect ทุก Role ไปหน้าแรก
+      navigate("/");
     } catch (err) {
       Swal.fire({
         icon: "error",

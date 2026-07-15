@@ -1,63 +1,62 @@
-import { useNavigate, useLocation } from "react-router-dom";
+import { Dropdown } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
 
-const NAV_ITEMS = [
-  { label: "Home", path: "/" },
-  { label: "Products", path: "/products" },
-  { label: "Cart", path: "/cart" },
-  { label: "Orders", path: "/orders" },
-  { label: "Warranty", path: "/warranty" },
-  { label: "My Account", path: "/my-account" },
-];
-
-export default function CustomerNavbar() {
+export default function Navbar() {
   const navigate = useNavigate();
-  const location = useLocation();
 
-  const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user"));
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    localStorage.removeItem("role");
-    sessionStorage.removeItem("token");
+
     navigate("/login");
   };
 
-  if (!token) return null;
-
-  const isActive = (path) =>
-    path === "/" ? location.pathname === "/" : location.pathname.startsWith(path);
+  const handleAdminConsole = () => {
+    if (user?.role === "superadmin") {
+      navigate("/superadmin/dashboard");
+    } else {
+      navigate("/admin/dashboard");
+    }
+  };
 
   return (
-    <div className="tck-nav-wrap">
-      <div className="tck-nav">
-        <button
-          type="button"
-          className="tck-logo tck-nav-link"
-          onClick={() => navigate("/")}
+    <nav className="navbar navbar-light bg-white shadow-sm px-4">
+      <h4 className="mb-0">Admin Panel</h4>
+
+      <Dropdown align="end">
+        <Dropdown.Toggle
+          variant="light"
+          className="d-flex align-items-center border-0 bg-white"
         >
-          TleComKub
-        </button>
+          <i className="bi bi-person-circle fs-4 me-2"></i>
 
-        <div className="tck-nav-links">
-          {NAV_ITEMS.map((item) => (
-            <button
-              key={item.path}
-              type="button"
-              className={`tck-nav-link${isActive(item.path) ? " active" : ""}`}
-              onClick={() => navigate(item.path)}
-            >
-              {item.label}
-            </button>
-          ))}
-        </div>
+          <div className="text-start">
+            <div className="fw-semibold">{user?.name || "Administrator"}</div>
 
-        <div className="tck-nav-spacer" />
+            <small className="text-muted text-capitalize">{user?.role}</small>
+          </div>
+        </Dropdown.Toggle>
 
-        <button type="button" className="tck-logout" onClick={handleLogout}>
-          Logout
-        </button>
-      </div>
-    </div>
+        <Dropdown.Menu>
+          <Dropdown.Item onClick={() => navigate("/profile")}>
+            My Account
+          </Dropdown.Item>
+
+          {(user?.role === "admin" || user?.role === "superadmin") && (
+            <Dropdown.Item onClick={handleAdminConsole}>
+              Admin Console
+            </Dropdown.Item>
+          )}
+
+          <Dropdown.Divider />
+
+          <Dropdown.Item onClick={handleLogout} className="text-danger">
+            Logout
+          </Dropdown.Item>
+        </Dropdown.Menu>
+      </Dropdown>
+    </nav>
   );
 }

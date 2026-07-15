@@ -9,11 +9,13 @@ export default function PrivateRoute({ children, allowedRoles }) {
   }
 
   if (allowedRoles) {
-    const storedUser = localStorage.getItem("user");
+    const storedUser =
+      localStorage.getItem("user") || sessionStorage.getItem("user");
+
     const user = storedUser ? JSON.parse(storedUser) : null;
 
     if (!user || !allowedRoles.includes(user.role_id)) {
-      return <Navigate to="/admin/dashboard" replace />;
+      return <Navigate to="/" replace />;
     }
   }
 

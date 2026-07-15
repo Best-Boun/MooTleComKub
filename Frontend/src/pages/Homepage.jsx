@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import productService from "../services/productService";
-import CustomerNavbar from "../components/layout/CustomerNavbar";
 import "../styles/tckTheme.css";
 import cartService from "../services/cartService";
+import { Dropdown } from "react-bootstrap";
 
 const API_URL = "http://localhost:5000";
 
@@ -39,6 +39,8 @@ export default function Homepage() {
   const [cartMessage, setCartMessage] = useState("");
 
   const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+
+  const user = JSON.parse(localStorage.getItem("user"));
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -465,9 +467,29 @@ export default function Homepage() {
 
             <div className="tck-nav-spacer" />
 
-            <button type="button" className="tck-logout" onClick={handleLogout}>
-              Logout
-            </button>
+            <Dropdown align="end">
+              <Dropdown.Toggle variant="light" className="border-0 bg-white">
+                {user?.first_name || "Account"}
+              </Dropdown.Toggle>
+
+              <Dropdown.Menu>
+                <Dropdown.Item onClick={() => navigate("/my-account")}>
+                  My Account
+                </Dropdown.Item>
+
+                {(user?.role_id === 2 || user?.role_id === 3) && (
+                  <Dropdown.Item onClick={() => navigate("/admin/dashboard")}>
+                    Admin Console
+                  </Dropdown.Item>
+                )}
+
+                <Dropdown.Divider />
+
+                <Dropdown.Item onClick={handleLogout} className="text-danger">
+                  Logout
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
           </div>
         </div>
       )}
