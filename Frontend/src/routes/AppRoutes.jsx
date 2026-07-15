@@ -14,6 +14,7 @@ import WarrantyDetail from "../pages/WarrantyDetail";
 import WarrantyClaimNew from "../pages/WarrantyClaimNew";
 import WarrantyClaims from "../pages/WarrantyClaims";
 import WarrantyClaimDetail from "../pages/WarrantyClaimDetail";
+import MyAccount from "../pages/MyAccount";
 
 import Dashboard from "../pages/admin/Dashboard";
 import Categories from "../pages/admin/Categories";
@@ -142,7 +143,7 @@ export default function AppRoutes() {
           path="/my-account"
           element={
             <PrivateRoute>
-              <ComingSoon title="My Account" />
+              <MyAccount />
             </PrivateRoute>
           }
         />
