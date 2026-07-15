@@ -27,6 +27,29 @@ class RoleModel {
 
     return result.affectedRows > 0;
   }
+
+  // ดึงผู้ใช้ทั้งหมดในระบบพร้อม Role ปัจจุบัน
+  static async getAllUsersWithRoles() {
+    const [rows] = await db.query(
+      `SELECT u.user_id, u.first_name, u.last_name, u.email, u.status,
+              u.role_id, r.role_name
+       FROM users u
+       LEFT JOIN roles r ON u.role_id = r.role_id
+       ORDER BY u.user_id ASC`,
+    );
+
+    return rows;
+  }
+
+  // อัปเดต Role ของผู้ใช้
+  static async updateUserRole(userId, roleId) {
+    const [result] = await db.query(
+      "UPDATE users SET role_id = ? WHERE user_id = ?",
+      [roleId, userId],
+    );
+
+    return result.affectedRows > 0;
+  }
 }
 
 module.exports = RoleModel;

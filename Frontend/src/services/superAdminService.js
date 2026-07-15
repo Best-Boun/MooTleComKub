@@ -33,6 +33,18 @@ const superAdminService = {
     return response.data;
   },
 
+  async getUsersWithRoles() {
+    const response = await api.get("/roles/users");
+    return response.data;
+  },
+
+  async updateUserRole(userId, roleId) {
+    const response = await api.put(`/roles/users/${userId}`, {
+      role_id: roleId,
+    });
+    return response.data;
+  },
+
   // ================= System =================
   async getSystemLogs(params) {
     const response = await api.get("/system/logs", { params });

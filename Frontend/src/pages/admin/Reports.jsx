@@ -25,9 +25,13 @@ export default function Reports() {
   // ---------------- Roles ----------------
   const [roles, setRoles] = useState([]);
   const [rolesLoading, setRolesLoading] = useState(false);
+
+  // ---------------- Users & Role Assignment ----------------
+  const [allUsers, setAllUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
   const [showRoleModal, setShowRoleModal] = useState(false);
-  const [editingRoleId, setEditingRoleId] = useState(null);
-  const [roleName, setRoleName] = useState("");
+  const [editingUser, setEditingUser] = useState(null);
+  const [selectedRoleId, setSelectedRoleId] = useState("");
 
   // ---------------- System Logs ----------------
   const [logs, setLogs] = useState([]);
@@ -152,22 +156,35 @@ export default function Reports() {
     }
   };
 
-  const openEditRole = (role) => {
-    setEditingRoleId(role.role_id);
-    setRoleName(role.role_name || "");
+  // ================= Users & Role Assignment =================
+  const loadUsers = async () => {
+    setUsersLoading(true);
+    try {
+      const res = await superAdminService.getUsersWithRoles();
+      setAllUsers(res.users || []);
+    } catch (error) {
+      showError(error, "โหลดรายชื่อผู้ใช้ไม่สำเร็จ");
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
+  const openEditUserRole = (user) => {
+    setEditingUser(user);
+    setSelectedRoleId(user.role_id ? String(user.role_id) : "");
     setShowRoleModal(true);
   };
 
-  const handleSaveRole = async (e) => {
+  const handleSaveUserRole = async (e) => {
     e.preventDefault();
 
     try {
-      await superAdminService.updateRole(editingRoleId, { role_name: roleName });
-      showSuccess("อัปเดต Role เรียบร้อยแล้ว");
+      await superAdminService.updateUserRole(editingUser.user_id, selectedRoleId);
+      showSuccess("อัปเดต Role ของผู้ใช้เรียบร้อยแล้ว");
       setShowRoleModal(false);
-      loadRoles();
+      loadUsers();
     } catch (error) {
-      showError(error, "อัปเดต Role ไม่สำเร็จ");
+      showError(error, "อัปเดต Role ของผู้ใช้ไม่สำเร็จ");
     }
   };
 
@@ -229,7 +246,10 @@ export default function Reports() {
     // เลื่อนไปทำงานใน microtask ถัดไป เพื่อไม่ให้ setState (loading) เกิดขึ้นแบบ synchronous ใน Effect
     Promise.resolve().then(() => {
       if (activeTab === "admins") loadAdmins();
-      if (activeTab === "roles") loadRoles();
+      if (activeTab === "roles") {
+        loadRoles();
+        loadUsers();
+      }
       if (activeTab === "logs") loadLogs(1);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -311,7 +331,14 @@ export default function Reports() {
         {/* ============ Roles ============ */}
         <Tab eventKey="roles" title="Roles">
           <div className="d-flex justify-content-end my-3">
-            <Button variant="outline-secondary" onClick={loadRoles} disabled={rolesLoading}>
+            <Button
+              variant="outline-secondary"
+              onClick={() => {
+                loadRoles();
+                loadUsers();
+              }}
+              disabled={usersLoading || rolesLoading}
+            >
               <i className="bi bi-arrow-clockwise me-1"></i>
               Refresh
             </Button>
@@ -320,30 +347,38 @@ export default function Reports() {
           <Table striped bordered hover responsive>
             <thead>
               <tr>
-                <th>Role ID</th>
-                <th>Role Name</th>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Current Role</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {roles.length === 0 && (
+              {allUsers.length === 0 && (
                 <tr>
-                  <td colSpan={3} className="text-center text-muted">
-                    {rolesLoading ? "Loading..." : "No roles"}
+                  <td colSpan={5} className="text-center text-muted">
+                    {usersLoading ? "Loading..." : "No users"}
                   </td>
                 </tr>
               )}
-              {roles.map((role) => (
-                <tr key={role.role_id}>
-                  <td>{role.role_id}</td>
-                  <td>{role.role_name}</td>
+              {allUsers.map((user) => (
+                <tr key={user.user_id}>
+                  <td>{user.user_id}</td>
+                  <td>
+                    {user.first_name} {user.last_name}
+                  </td>
+                  <td>{user.email}</td>
+                  <td>
+                    <Badge bg="info">{user.role_name || "-"}</Badge>
+                  </td>
                   <td>
                     <Button
                       size="sm"
                       variant="outline-primary"
-                      onClick={() => openEditRole(role)}
+                      onClick={() => openEditUserRole(user)}
                     >
-                      Edit
+                      Edit Role
                     </Button>
                   </td>
                 </tr>
@@ -550,18 +585,39 @@ export default function Reports() {
 
       {/* ============ Role Modal ============ */}
       <Modal show={showRoleModal} onHide={() => setShowRoleModal(false)}>
-        <Form onSubmit={handleSaveRole}>
+        <Form onSubmit={handleSaveUserRole}>
           <Modal.Header closeButton>
-            <Modal.Title>Edit Role</Modal.Title>
+            <Modal.Title>Edit User Role</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <Form.Group>
-              <Form.Label>Role Name</Form.Label>
+            <Form.Group className="mb-3">
+              <Form.Label>User</Form.Label>
               <Form.Control
-                required
-                value={roleName}
-                onChange={(e) => setRoleName(e.target.value)}
+                plaintext
+                readOnly
+                value={
+                  editingUser
+                    ? `${editingUser.first_name} ${editingUser.last_name} (${editingUser.email})`
+                    : ""
+                }
               />
+            </Form.Group>
+            <Form.Group>
+              <Form.Label>Role</Form.Label>
+              <Form.Select
+                required
+                value={selectedRoleId}
+                onChange={(e) => setSelectedRoleId(e.target.value)}
+              >
+                <option value="" disabled>
+                  Select a role
+                </option>
+                {roles.map((role) => (
+                  <option key={role.role_id} value={role.role_id}>
+                    {role.role_name}
+                  </option>
+                ))}
+              </Form.Select>
             </Form.Group>
           </Modal.Body>
           <Modal.Footer>
