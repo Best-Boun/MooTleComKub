@@ -1,62 +1,94 @@
 import { Dropdown } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
-export default function Navbar() {
+export default function CustomerNavbar() {
   const navigate = useNavigate();
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user =
+    JSON.parse(localStorage.getItem("user")) ||
+    JSON.parse(sessionStorage.getItem("user"));
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
 
     navigate("/login");
   };
 
-  const handleAdminConsole = () => {
-    if (user?.role === "superadmin") {
-      navigate("/superadmin/dashboard");
-    } else {
-      navigate("/admin/dashboard");
-    }
-  };
-
   return (
-    <nav className="navbar navbar-light bg-white shadow-sm px-4">
-      <h4 className="mb-0">Admin Panel</h4>
-
-      <Dropdown align="end">
-        <Dropdown.Toggle
-          variant="light"
-          className="d-flex align-items-center border-0 bg-white"
+    <div className="tck-nav-wrap">
+      <div className="tck-nav">
+        <button
+          type="button"
+          className="tck-logo tck-nav-link"
+          onClick={() => navigate("/")}
         >
-          <i className="bi bi-person-circle fs-4 me-2"></i>
+          TleComKub
+        </button>
 
-          <div className="text-start">
-            <div className="fw-semibold">{user?.name || "Administrator"}</div>
+        <div className="tck-nav-links">
+          <button className="tck-nav-link" onClick={() => navigate("/")}>
+            Home
+          </button>
 
-            <small className="text-muted text-capitalize">{user?.role}</small>
-          </div>
-        </Dropdown.Toggle>
+          <button
+            className="tck-nav-link"
+            onClick={() => navigate("/products")}
+          >
+            Products
+          </button>
 
-        <Dropdown.Menu>
-          <Dropdown.Item onClick={() => navigate("/profile")}>
+          <button className="tck-nav-link" onClick={() => navigate("/cart")}>
+            Cart
+          </button>
+
+          <button className="tck-nav-link" onClick={() => navigate("/orders")}>
+            Orders
+          </button>
+
+          <button
+            className="tck-nav-link"
+            onClick={() => navigate("/warranty")}
+          >
+            Warranty
+          </button>
+
+          <button
+            className="tck-nav-link"
+            onClick={() => navigate("/my-account")}
+          >
             My Account
-          </Dropdown.Item>
+          </button>
+        </div>
 
-          {(user?.role === "admin" || user?.role === "superadmin") && (
-            <Dropdown.Item onClick={handleAdminConsole}>
-              Admin Console
+        <div className="tck-nav-spacer" />
+
+        <Dropdown align="end">
+          <Dropdown.Toggle variant="light" className="border-0 bg-transparent">
+            {user?.first_name || "Account"}
+          </Dropdown.Toggle>
+
+          <Dropdown.Menu>
+            <Dropdown.Item onClick={() => navigate("/my-account")}>
+              My Account
             </Dropdown.Item>
-          )}
 
-          <Dropdown.Divider />
+            {(user?.role_id === 2 || user?.role_id === 3) && (
+              <Dropdown.Item onClick={() => navigate("/admin/dashboard")}>
+                Admin Console
+              </Dropdown.Item>
+            )}
 
-          <Dropdown.Item onClick={handleLogout} className="text-danger">
-            Logout
-          </Dropdown.Item>
-        </Dropdown.Menu>
-      </Dropdown>
-    </nav>
+            <Dropdown.Divider />
+
+            <Dropdown.Item className="text-danger" onClick={handleLogout}>
+              Logout
+            </Dropdown.Item>
+          </Dropdown.Menu>
+        </Dropdown>
+      </div>
+    </div>
   );
 }
