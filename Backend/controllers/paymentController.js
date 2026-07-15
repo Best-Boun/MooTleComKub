@@ -64,7 +64,7 @@ class PaymentController {
       }
 
       // Get created payment
-      const payment = await PaymentModel.getPaymentById(result.paymentId);
+      const payment = await PaymentModel.getPaymentById(result.payment_id);
 
       res.status(201).json({
         success: true,

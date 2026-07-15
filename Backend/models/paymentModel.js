@@ -118,4 +118,24 @@ class PaymentModel {
           await connection.query(`DELETE FROM cart_items WHERE cart_id = ?`, [cart.cart_id]);
           await connection.query(`UPDATE shopping_carts SET total_amount = 0 WHERE cart_id = ?`, [cart.cart_id]);
         }
+        await connection.commit();
 
+        return {
+          success: true,
+          payment_id: paymentResult.insertId,
+          transaction_id: transactionId,
+        };
+      } catch (error) {
+        await connection.rollback();
+        throw error;
+      } finally {
+        connection.release();
+      }
+    }
+
+    static generateTransactionId() {
+      return `TX${Date.now()}${Math.floor(Math.random() * 1000)}`;
+    }
+}
+
+module.exports = PaymentModel;
