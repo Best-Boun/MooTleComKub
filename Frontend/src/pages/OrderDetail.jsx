@@ -12,11 +12,70 @@ const STATUS_LABEL = {
   CANCELLED: "ยกเลิกแล้ว",
 };
 
+const TRACKING_STEPS = [
+  {
+    key: "PENDING",
+    title: "คำสั่งซื้อถูกสร้าง",
+    desc: "เรารับคำสั่งซื้อของคุณไว้เรียบร้อยแล้ว",
+  },
+  {
+    key: "PAID",
+    title: "ชำระเงินสำเร็จ",
+    desc: "ระบบยืนยันการชำระเงินเรียบร้อยแล้ว",
+  },
+  {
+    key: "SHIPPED",
+    title: "กำลังจัดส่ง",
+    desc: "พัสดุอยู่ระหว่างการเตรียมและส่งต่อ",
+  },
+  {
+    key: "DELIVERED",
+    title: "ส่งถึงมือคุณแล้ว",
+    desc: "คำสั่งซื้อถึงปลายทางเรียบร้อยแล้ว",
+  },
+];
+
 function StatusBadge({ status }) {
   return (
     <span className={`tck-order-status tck-order-status-${(status || "").toLowerCase()}`}>
       {STATUS_LABEL[status] || status || "-"}
     </span>
+  );
+}
+
+function TrackingTimeline({ status }) {
+  const statusOrder = ["PENDING", "PAID", "SHIPPED", "DELIVERED"];
+  const currentIndex = statusOrder.indexOf(status || "PENDING");
+
+  if (status === "CANCELLED") {
+    return (
+      <div className="tck-order-tracking-card">
+        <div className="tck-order-tracking-title">สถานะคำสั่งซื้อ</div>
+        <div className="tck-order-tracking-cancelled">คำสั่งซื้อถูกยกเลิก</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="tck-order-tracking-card">
+      <div className="tck-order-tracking-title">ติดตามคำสั่งซื้อ</div>
+      <div className="tck-order-tracking-list">
+        {TRACKING_STEPS.map((step, index) => {
+          const isDone = index < currentIndex;
+          const isCurrent = index === currentIndex;
+
+          return (
+            <div className="tck-order-tracking-item" key={step.key}>
+              <div className={`tck-order-tracking-dot ${isDone ? "done" : ""} ${isCurrent ? "current" : ""}`} />
+              <div className="tck-order-tracking-copy">
+                <div className="tck-order-tracking-step">{step.title}</div>
+                <div className="tck-order-tracking-desc">{step.desc}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
@@ -213,6 +272,58 @@ export default function OrderDetail() {
           padding: 60px 0;
           font-family: 'IBM Plex Mono', monospace;
         }
+
+        .tck-order-tracking-card {
+          margin-top: 16px;
+          padding-top: 16px;
+          border-top: 1px solid var(--line);
+        }
+        .tck-order-tracking-title {
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 600;
+          font-size: 15px;
+          margin-bottom: 12px;
+        }
+        .tck-order-tracking-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+        }
+        .tck-order-tracking-item {
+          display: flex;
+          gap: 10px;
+          align-items: flex-start;
+        }
+        .tck-order-tracking-dot {
+          width: 10px;
+          height: 10px;
+          border-radius: 999px;
+          background: var(--line);
+          margin-top: 6px;
+          flex-shrink: 0;
+        }
+        .tck-order-tracking-dot.done {
+          background: #22c55e;
+        }
+        .tck-order-tracking-dot.current {
+          background: var(--accent);
+          box-shadow: 0 0 0 4px rgba(43, 89, 255, 0.15);
+        }
+        .tck-order-tracking-step {
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 600;
+          font-size: 13.5px;
+          margin-bottom: 2px;
+        }
+        .tck-order-tracking-desc {
+          font-size: 13px;
+          color: var(--muted);
+          line-height: 1.5;
+        }
+        .tck-order-tracking-cancelled {
+          font-size: 14px;
+          color: var(--danger);
+        }
       `}</style>
 
       <div className="tck-order-detail-head">
@@ -290,6 +401,7 @@ export default function OrderDetail() {
                 วันที่สั่งซื้อ:{" "}
                 {order?.order_date ? new Date(order.order_date).toLocaleString("th-TH") : "-"}
               </div>
+              <TrackingTimeline status={order?.order_status} />
             </div>
           </div>
         </div>
