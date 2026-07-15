@@ -52,7 +52,7 @@ export default function Sidebar() {
       {/* Back to Store */}
 
       <div className="mt-auto">
-        <Link to="/pages/homepage" className="text-decoration-none">
+        <Link to="/" className="text-decoration-none">
           <Button variant="outline-light" className="w-100">
             <i className="bi bi-arrow-left me-2"></i>
             Back to Store

@@ -5,6 +5,8 @@ import categoryService from "../services/categoryService";
 import CustomerNavbar from "../components/layout/CustomerNavbar";
 import "../styles/tckTheme.css";
 
+const API_URL = "http://localhost:5000";
+
 const SORT_OPTIONS = [
   { value: "newest", label: "ล่าสุด" },
   { value: "price_asc", label: "ราคา: ต่ำ → สูง" },
@@ -292,7 +294,11 @@ export default function Products() {
                 <div className="tck-card" key={product.product_id}>
                   <div className="tck-card-media">
                     <img
-                      src={product.image || "https://placehold.co/300x200?text=No+Image"}
+                      src={
+                        product.image
+                          ? `${API_URL}${product.image}`
+                          : "https://placehold.co/300x200?text=No+Image"
+                      }
                       alt={product.product_name}
                     />
                     <span className={`tck-stock-tag${stock > 0 ? "" : " out"}`}>
@@ -304,13 +310,16 @@ export default function Products() {
                   </div>
                   <div className="tck-card-body">
                     <div className="tck-card-eyebrow">
-                      {product.brand_name || "—"} · {product.category_name || "ไม่ระบุหมวดหมู่"}
+                      {product.brand_name || "—"} ·{" "}
+                      {product.category_name || "ไม่ระบุหมวดหมู่"}
                     </div>
                     <h3 className="tck-card-title">{product.product_name}</h3>
                     <button
                       type="button"
                       className="tck-card-link"
-                      onClick={() => navigate(`/products/${product.product_id}`)}
+                      onClick={() =>
+                        navigate(`/products/${product.product_id}`)
+                      }
                     >
                       ดูรายละเอียด →
                     </button>

@@ -5,6 +5,8 @@ import CustomerNavbar from "../components/layout/CustomerNavbar";
 import "../styles/tckTheme.css";
 import cartService from "../services/cartService";
 
+const API_URL = "http://localhost:5000";
+
 function PortRail() {
   // Signature motif: a strip of notches echoing a laptop's side I/O ports
   const notches = [
@@ -417,12 +419,48 @@ export default function Homepage() {
             </button>
 
             <div className="tck-nav-links">
-              <button type="button" className="tck-nav-link" onClick={() => navigate("/")}>Home</button>
-              <button type="button" className="tck-nav-link" onClick={() => navigate("/products")}>Products</button>
-              <button type="button" className="tck-nav-link" onClick={() => navigate("/cart")}>Cart</button>
-              <button type="button" className="tck-nav-link" onClick={() => navigate("/orders")}>Orders</button>
-              <button type="button" className="tck-nav-link" onClick={() => navigate("/warranty")}>Warranty</button>
-              <button type="button" className="tck-nav-link" onClick={() => navigate("/my-account")}>My Account</button>
+              <button
+                type="button"
+                className="tck-nav-link"
+                onClick={() => navigate("/")}
+              >
+                Home
+              </button>
+              <button
+                type="button"
+                className="tck-nav-link"
+                onClick={() => navigate("/products")}
+              >
+                Products
+              </button>
+              <button
+                type="button"
+                className="tck-nav-link"
+                onClick={() => navigate("/cart")}
+              >
+                Cart
+              </button>
+              <button
+                type="button"
+                className="tck-nav-link"
+                onClick={() => navigate("/orders")}
+              >
+                Orders
+              </button>
+              <button
+                type="button"
+                className="tck-nav-link"
+                onClick={() => navigate("/warranty")}
+              >
+                Warranty
+              </button>
+              <button
+                type="button"
+                className="tck-nav-link"
+                onClick={() => navigate("/my-account")}
+              >
+                My Account
+              </button>
             </div>
 
             <div className="tck-nav-spacer" />
@@ -435,14 +473,22 @@ export default function Homepage() {
       )}
 
       <section className="tck-hero">
-        <div className="tck-eyebrow">TLECOMKUB / COMPUTER SETS &amp; NOTEBOOKS</div>
+        <div className="tck-eyebrow">
+          TLECOMKUB / COMPUTER SETS &amp; NOTEBOOKS
+        </div>
         <h1 className="tck-title">
           ทุกสเปกที่ใช่
           <br />
           ในราคาที่คุ้ม
         </h1>
-        <p className="tck-sub">คอมพิวเตอร์ตั้งโต๊ะและโน้ตบุ๊กของแท้ พร้อมประกันศูนย์</p>
-        <button type="button" className="tck-cta" onClick={() => navigate("/products")}>
+        <p className="tck-sub">
+          คอมพิวเตอร์ตั้งโต๊ะและโน้ตบุ๊กของแท้ พร้อมประกันศูนย์
+        </p>
+        <button
+          type="button"
+          className="tck-cta"
+          onClick={() => navigate("/products")}
+        >
           เลือกซื้อสินค้า →
         </button>
 
@@ -471,7 +517,9 @@ export default function Homepage() {
       <section className="tck-section">
         <div className="tck-section-head">
           <h2 className="tck-section-title">สินค้าแนะนำ</h2>
-          <span className="tck-section-tag tck-mono">FEATURED — {products.length} ITEMS</span>
+          <span className="tck-section-tag tck-mono">
+            FEATURED — {products.length} ITEMS
+          </span>
         </div>
 
         <div className="tck-grid">
@@ -479,7 +527,11 @@ export default function Homepage() {
             <div className="tck-card" key={product.product_id}>
               <div className="tck-card-media">
                 <img
-                  src={product.image || "https://placehold.co/300x200?text=No+Image"}
+                  src={
+                    product.image
+                      ? `${API_URL}${product.image}`
+                      : "https://placehold.co/300x200?text=No+Image"
+                  }
                   alt={product.product_name}
                 />
                 <span className="tck-price-tag">
@@ -488,14 +540,25 @@ export default function Homepage() {
               </div>
               <div className="tck-card-body">
                 <h3 className="tck-card-title">{product.product_name}</h3>
+
                 <div className="tck-card-actions">
+                  <button
+                    type="button"
+                    className="tck-card-link"
+                    onClick={() => navigate(`/products/${product.product_id}`)}
+                  >
+                    ดูรายละเอียด →
+                  </button>
+
                   <button
                     type="button"
                     className="tck-add-cart"
                     disabled={addingId === product.product_id}
                     onClick={() => handleAddToCart(product)}
                   >
-                    {addingId === product.product_id ? "กำลังเพิ่ม..." : "หยิบใส่ตะกร้า"}
+                    {addingId === product.product_id
+                      ? "กำลังเพิ่ม..."
+                      : "หยิบใส่ตะกร้า"}
                   </button>
                 </div>
               </div>
@@ -513,7 +576,8 @@ export default function Homepage() {
           <div className="tck-spec-row">
             <span className="tck-spec-mark tck-mono">GEN</span>
             <span className="tck-spec-text">
-              <b>สินค้าของแท้</b> — นำเข้าและจัดจำหน่ายโดยตัวแทนที่ได้รับการรับรอง
+              <b>สินค้าของแท้</b> —
+              นำเข้าและจัดจำหน่ายโดยตัวแทนที่ได้รับการรับรอง
             </span>
           </div>
           <div className="tck-spec-row">

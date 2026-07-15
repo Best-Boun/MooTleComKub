@@ -4,6 +4,8 @@ import productService from "../services/productService";
 import CustomerNavbar from "../components/layout/CustomerNavbar";
 import "../styles/tckTheme.css";
 
+const API_URL = "http://localhost:5000";
+
 export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -147,7 +149,11 @@ export default function ProductDetail() {
       `}</style>
 
       <div className="tck-back">
-        <button type="button" className="tck-back-link" onClick={() => navigate("/products")}>
+        <button
+          type="button"
+          className="tck-back-link"
+          onClick={() => navigate("/products")}
+        >
           ← กลับไปหน้าสินค้าทั้งหมด
         </button>
       </div>
@@ -157,8 +163,14 @@ export default function ProductDetail() {
       {!loading && notFound && (
         <div className="tck-empty" style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div className="tck-empty-title">ไม่พบสินค้านี้</div>
-          <div style={{ marginBottom: 16 }}>สินค้าอาจถูกลบหรือลิงก์ไม่ถูกต้อง</div>
-          <button type="button" className="tck-cta" onClick={() => navigate("/products")}>
+          <div style={{ marginBottom: 16 }}>
+            สินค้าอาจถูกลบหรือลิงก์ไม่ถูกต้อง
+          </div>
+          <button
+            type="button"
+            className="tck-cta"
+            onClick={() => navigate("/products")}
+          >
             กลับไปหน้าสินค้า →
           </button>
         </div>
@@ -169,19 +181,31 @@ export default function ProductDetail() {
           <div className="tck-detail">
             <div className="tck-detail-media">
               <img
-                src={product.image || "https://placehold.co/500x400?text=No+Image"}
+                src={
+                  product.image
+                    ? `${API_URL}${product.image}`
+                    : "https://placehold.co/500x400?text=No+Image"
+                }
                 alt={product.product_name}
               />
-              <span className={`tck-stock-tag${Number(product.stock) > 0 ? "" : " out"}`}>
-                {Number(product.stock) > 0 ? `เหลือ ${product.stock} ชิ้น` : "สินค้าหมด"}
+              <span
+                className={`tck-stock-tag${Number(product.stock) > 0 ? "" : " out"}`}
+              >
+                {Number(product.stock) > 0
+                  ? `เหลือ ${product.stock} ชิ้น`
+                  : "สินค้าหมด"}
               </span>
             </div>
 
             <div>
               <div className="tck-eyebrow">
-                {product.category_name || "ไม่ระบุหมวดหมู่"} · {product.brand_name || "—"}
+                {product.category_name || "ไม่ระบุหมวดหมู่"} ·{" "}
+                {product.brand_name || "—"}
               </div>
-              <h1 className="tck-title" style={{ fontSize: "clamp(24px, 3.5vw, 34px)" }}>
+              <h1
+                className="tck-title"
+                style={{ fontSize: "clamp(24px, 3.5vw, 34px)" }}
+              >
                 {product.product_name}
               </h1>
               <div className="tck-detail-price">
@@ -195,7 +219,9 @@ export default function ProductDetail() {
               <div className="tck-spec-list" style={{ marginBottom: 22 }}>
                 <div className="tck-spec-row">
                   <span className="tck-spec-mark tck-mono">SKU</span>
-                  <span className="tck-spec-text tck-mono">{product.sku || "—"}</span>
+                  <span className="tck-spec-text tck-mono">
+                    {product.sku || "—"}
+                  </span>
                 </div>
                 <div className="tck-spec-row">
                   <span className="tck-spec-mark tck-mono">WTY</span>
@@ -206,13 +232,19 @@ export default function ProductDetail() {
                 <div className="tck-spec-row">
                   <span className="tck-spec-mark tck-mono">STA</span>
                   <span className="tck-spec-text">
-                    {product.status === "ACTIVE" ? "พร้อมจำหน่าย" : "ปิดการขายชั่วคราว"}
+                    {product.status === "ACTIVE"
+                      ? "พร้อมจำหน่าย"
+                      : "ปิดการขายชั่วคราว"}
                   </span>
                 </div>
               </div>
 
               <div className="tck-detail-actions">
-                <button type="button" className="tck-cta" onClick={() => navigate("/products")}>
+                <button
+                  type="button"
+                  className="tck-cta"
+                  onClick={() => navigate("/products")}
+                >
                   เลือกดูสินค้าอื่น →
                 </button>
               </div>
@@ -229,7 +261,11 @@ export default function ProductDetail() {
                   <div className="tck-card" key={p.product_id}>
                     <div className="tck-card-media">
                       <img
-                        src={p.image || "https://placehold.co/300x200?text=No+Image"}
+                        src={
+                          p.image
+                            ? `${API_URL}${p.image}`
+                            : "https://placehold.co/300x200?text=No+Image"
+                        }
                         alt={p.product_name}
                       />
                       <span className="tck-price-tag">
