@@ -147,6 +147,24 @@ class ProductModel {
 
     return result;
   }
+
+  static async getActiveProducts() {
+    const [rows] = await db.query(`
+    SELECT
+      p.*,
+      c.category_name,
+      b.brand_name
+    FROM products p
+    LEFT JOIN categories c
+      ON p.category_id = c.category_id
+    LEFT JOIN brands b
+      ON p.brand_id = b.brand_id
+    WHERE p.status = 'ACTIVE'
+    ORDER BY p.product_id DESC
+  `);
+
+    return rows;
+  }
 }
 
 module.exports = ProductModel;

@@ -53,7 +53,7 @@ export default function Homepage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await productService.getAllProducts();
+        const res = await productService.getActiveProducts();
         const allProducts = Array.isArray(res?.data) ? res.data : [];
         setProducts(allProducts.slice(0, 4));
       } catch (error) {

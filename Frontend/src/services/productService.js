@@ -46,6 +46,12 @@ const productService = {
     const response = await api.patch(`/products/${id}/status`);
     return response.data;
   },
+
+  async getActiveProducts() {
+    const response = await api.get("/products/active");
+    return response.data;
+  },
+  
 };
 
 export default productService;

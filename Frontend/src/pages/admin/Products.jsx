@@ -7,10 +7,12 @@ import ProductTable from "../../components/products/ProductTable";
 import ProductFilter from "../../components/products/ProductFilter";
 import CustomPagination from "../../components/common/Pagination";
 import ProductModal from "../../components/products/ProductModal";
+import categoryService from "../../services/categoryService";
 
 export default function Products() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState([]);
 
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
@@ -46,9 +48,20 @@ export default function Products() {
     }
   };
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+const fetchCategories = async () => {
+  try {
+    const res = await categoryService.getAllCategories();
+    setCategories(res.data);
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+
+ useEffect(() => {
+   fetchProducts();
+   fetchCategories();
+ }, []);
 
   // ลบสินค้า
   const handleDelete = async (id) => {
@@ -189,6 +202,7 @@ export default function Products() {
             setCategory={setCategory}
             status={status}
             setStatus={setStatus}
+            categories={categories}
           />
 
           {loading ? (
@@ -219,7 +233,7 @@ export default function Products() {
         onHide={() => setShowModal(false)}
         mode={mode}
         product={selectedProduct}
-        categories={[]}
+        categories={categories}
         onSuccess={handleSuccess}
       />
     </>

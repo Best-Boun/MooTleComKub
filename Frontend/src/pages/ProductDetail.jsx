@@ -34,6 +34,7 @@ export default function ProductDetail() {
         }
 
         setProduct(res.data);
+        console.log(res.data);
 
         // สินค้าที่เกี่ยวข้อง: หมวดหมู่เดียวกัน ไม่รวมตัวมันเอง
         try {
@@ -235,6 +236,35 @@ export default function ProductDetail() {
                     {product.status === "ACTIVE"
                       ? "พร้อมจำหน่าย"
                       : "ปิดการขายชั่วคราว"}
+                  </span>
+                </div>
+
+                <div className="tck-spec-row">
+                  <span className="tck-spec-mark tck-mono">CPU</span>
+                  <span className="tck-spec-text">{product.cpu || "-"}</span>
+                </div>
+
+                <div className="tck-spec-row">
+                  <span className="tck-spec-mark tck-mono">GPU</span>
+                  <span className="tck-spec-text">{product.gpu || "-"}</span>
+                </div>
+
+                <div className="tck-spec-row">
+                  <span className="tck-spec-mark tck-mono">RAM</span>
+                  <span className="tck-spec-text">{product.ram || "-"}</span>
+                </div>
+
+                <div className="tck-spec-row">
+                  <span className="tck-spec-mark tck-mono">DSP</span>
+                  <span className="tck-spec-text">
+                    {product.display || "-"}
+                  </span>
+                </div>
+
+                <div className="tck-spec-row">
+                  <span className="tck-spec-mark tck-mono">SSD</span>
+                  <span className="tck-spec-text">
+                    {product.storage || "-"}
                   </span>
                 </div>
               </div>

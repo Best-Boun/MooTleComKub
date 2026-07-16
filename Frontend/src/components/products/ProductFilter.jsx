@@ -7,6 +7,7 @@ export default function ProductFilter({
   setCategory,
   status,
   setStatus,
+  categories,
 }) {
   return (
     <Row className="mb-4 g-3">
@@ -25,10 +26,12 @@ export default function ProductFilter({
           onChange={(e) => setCategory(e.target.value)}
         >
           <option value="">All Categories</option>
-          <option value="Notebook">Notebook</option>
-          <option value="Monitor">Monitor</option>
-          <option value="Mouse">Mouse</option>
-          <option value="Keyboard">Keyboard</option>
+
+          {categories.map((cat) => (
+            <option key={cat.category_id} value={cat.category_name}>
+              {cat.category_name}
+            </option>
+          ))}
         </Form.Select>
       </Col>
 

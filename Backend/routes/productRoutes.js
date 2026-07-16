@@ -8,6 +8,8 @@ const upload = require("../middlewares/upload");
 // ดึงสินค้าทั้งหมด
 router.get("/", ProductController.getAllProducts);
 
+router.get("/active", ProductController.getActiveProducts);
+
 // ดึงสินค้าตาม ID
 router.get("/:id", ProductController.getProductById);
 
