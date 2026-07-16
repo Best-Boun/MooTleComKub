@@ -1,6 +1,11 @@
-import { Badge, Button, Table } from "react-bootstrap";
+import { Button, Form, Table } from "react-bootstrap";
 
-export default function OrderTable({ orders, onView, onDelete }) {
+export default function OrderTable({
+  orders,
+  onView,
+  onDelete,
+  onUpdateStatus,
+}) {
   return (
     <Table striped bordered hover responsive>
       <thead className="table-dark">
@@ -33,20 +38,19 @@ export default function OrderTable({ orders, onView, onDelete }) {
 
               <td>฿{Number(order.total_amount).toLocaleString()}</td>
 
-              <td>
-                <Badge
-                  bg={
-                    order.order_status === "DELIVERED"
-                      ? "success"
-                      : order.order_status === "PENDING"
-                        ? "warning"
-                        : order.order_status === "CANCELLED"
-                          ? "danger"
-                          : "primary"
+              <td style={{ minWidth: "170px" }}>
+                <Form.Select
+                  size="sm"
+                  value={order.order_status}
+                  onChange={(e) =>
+                    onUpdateStatus(order.order_id, e.target.value)
                   }
                 >
-                  {order.order_status}
-                </Badge>
+                  <option value="PENDING">🟡 Pending</option>
+                  <option value="PAID">🔵 Paid</option>
+                  <option value="DELIVERED">🟢 Delivered</option>
+                  <option value="CANCELLED">🔴 Cancelled</option>
+                </Form.Select>
               </td>
 
               <td>{new Date(order.order_date).toLocaleDateString()}</td>

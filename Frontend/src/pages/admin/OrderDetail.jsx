@@ -105,15 +105,19 @@ export default function OrderDetail() {
                 <Col md={6}>
                   <strong>Payment Method</strong>
                   <p>
-                    {order.payment_method === "CREDIT_CARD"
-                      ? "💳 Credit Card"
-                      : order.payment_method === "PROMPTPAY"
-                        ? "📱 PromptPay"
-                        : order.payment_method === "BANK_TRANSFER"
-                          ? "🏦 Bank Transfer"
-                          : order.payment_method === "COD"
-                            ? "💵 Cash on Delivery"
-                            : order.payment_method}
+                    {order.payment_method ? (
+                      order.payment_method === "CREDIT_CARD" ? (
+                        "💳 Credit Card"
+                      ) : order.payment_method === "PROMPTPAY" ? (
+                        "📱 PromptPay"
+                      ) : order.payment_method === "BANK_TRANSFER" ? (
+                        "🏦 Bank Transfer"
+                      ) : (
+                        order.payment_method
+                      )
+                    ) : (
+                      <span className="text-muted">Waiting for Payment</span>
+                    )}
                   </p>
                 </Col>
 

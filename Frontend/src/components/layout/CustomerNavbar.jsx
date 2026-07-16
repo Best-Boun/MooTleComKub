@@ -48,12 +48,6 @@ export default function CustomerNavbar() {
             Orders
           </button>
 
-          <button
-            className="tck-nav-link"
-            onClick={() => navigate("/warranty")}
-          >
-            Warranty
-          </button>
 
           <button
             className="tck-nav-link"

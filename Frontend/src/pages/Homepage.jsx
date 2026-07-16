@@ -449,13 +449,7 @@ export default function Homepage() {
               >
                 Orders
               </button>
-              <button
-                type="button"
-                className="tck-nav-link"
-                onClick={() => navigate("/warranty")}
-              >
-                Warranty
-              </button>
+             
               <button
                 type="button"
                 className="tck-nav-link"

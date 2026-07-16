@@ -90,6 +90,29 @@ export default function Orders() {
     }
   };
 
+const handleUpdateStatus = async (id, status) => {
+  try {
+    await orderService.updateOrderStatus(id, status);
+
+    Swal.fire({
+      icon: "success",
+      title: "Updated!",
+      text: "Order status updated successfully.",
+      timer: 1200,
+      showConfirmButton: false,
+    });
+
+    fetchOrders();
+  } catch (error) {
+    Swal.fire({
+      icon: "error",
+      title: "Update Failed",
+      text: error.response?.data?.message || "Something went wrong",
+    });
+  }
+};
+
+
   // Filter
   const filteredOrders = orders.filter((order) => {
     const matchSearch =
@@ -131,6 +154,7 @@ export default function Orders() {
               orders={currentOrders}
               onView={handleView}
               onDelete={handleDelete}
+              onUpdateStatus={handleUpdateStatus}
             />
 
             <CustomPagination

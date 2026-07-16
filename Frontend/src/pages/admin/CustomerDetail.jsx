@@ -243,71 +243,7 @@ export default function CustomerDetail() {
         <Col>
           <Card className="shadow-sm border-0">
             <Card.Body>
-              <h4 className="fw-bold mb-3">🛡 Warranty Claim History</h4>
-
-              <Table striped hover responsive>
-                <thead>
-                  <tr>
-                    <th>Claim No.</th>
-                    <th>Product</th>
-                    <th>Status</th>
-                    <th>Submitted</th>
-                    <th width="120">Action</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {claims.length === 0 ? (
-                    <tr>
-                      <td colSpan="4" className="text-center">
-                        No Warranty Claims
-                      </td>
-                    </tr>
-                  ) : (
-                    claims.slice(0, 5).map((claim) => (
-                      <tr key={claim.claim_id}>
-                        <td>{claim.claim_number}</td>
-
-                        <td>{claim.product_name}</td>
-
-                        <td>
-                          <Badge
-                            bg={
-                              claim.claim_status === "COMPLETED"
-                                ? "success"
-                                : claim.claim_status === "PENDING"
-                                  ? "warning"
-                                  : claim.claim_status === "REJECTED"
-                                    ? "danger"
-                                    : "secondary"
-                            }
-                          >
-                            {claim.claim_status}
-                          </Badge>
-                        </td>
-
-                        <td>
-                          {new Date(claim.submitted_at).toLocaleDateString()}
-                        </td>
-
-                        <td>
-                          <Button
-                            size="sm"
-                            variant="primary"
-                            onClick={() =>
-                              navigate(
-                                `/admin/warranty-claims/${claim.claim_id}`,
-                              )
-                            }
-                          >
-                            View
-                          </Button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </Table>
+              
 
               <Button
                 variant="secondary"
