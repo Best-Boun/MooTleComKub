@@ -126,7 +126,9 @@ const Login = () => {
 
               <Form onSubmit={handleLogin}>
                 <Form.Group className="mb-3">
-                  <Form.Label>Email</Form.Label>
+                  <Form.Label>Email</Form.Label> 
+
+                
 
                   <Form.Control
                     type="email"
@@ -135,6 +137,9 @@ const Login = () => {
                     value={formData.email}
                     onChange={handleChange}
                   />
+                  {/* <p>Custumer : Pass :</p> */}
+                  {/* <p>Admin :chetakit.sub@spumail.net Pass : 123456</p>
+                  <p>Super Admin : Pass :</p> */}
                 </Form.Group>
 
                 <Form.Group className="mb-3">

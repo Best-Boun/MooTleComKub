@@ -66,10 +66,10 @@ const recentOrders = [
 ];
 
 const lowStockProducts = [
-  { name: "Cat Food Premium 3kg", category: "Food", stock: 4 },
-  { name: "Dog Leash L", category: "Accessories", stock: 6 },
-  { name: "Litter Box XL", category: "Accessories", stock: 2 },
-  { name: "Vitamin Supplement", category: "Health", stock: 5 },
+  { name: "MSI", category: "Laptop", stock: 4 },
+  { name: "MAC", category: "Laptop", stock: 6 },
+  { name: "Dell", category: "Laptop", stock: 2 },
+  { name: "Asus", category: "Laptop", stock: 5 },
 ];
 
 const statusVariant = {
