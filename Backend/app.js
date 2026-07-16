@@ -15,6 +15,8 @@ const orderRoutes = require("./routes/orderRoutes");
 const customerRoutes = require("./routes/customerRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
+const specTemplateRoutes = require("./routes/specTemplateRoutes");
+const productSpecRoutes = require("./routes/productSpecRoutes");
 
 const app = express();
 
@@ -32,6 +34,8 @@ app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/spec-templates", specTemplateRoutes);
+app.use("/api/product-specs", productSpecRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running...");
