@@ -15,8 +15,6 @@ const orderRoutes = require("./routes/orderRoutes");
 const customerRoutes = require("./routes/customerRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
-const warrantyRoutes = require("./routes/warrantyRoutes");
-const warrantyClaimRoutes = require("./routes/warrantyClaimRoutes");
 
 const app = express();
 
@@ -33,8 +31,6 @@ app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/customers", customerRoutes);
-app.use("/api/warranties", warrantyRoutes);
-app.use("/api/warranty-claims", warrantyClaimRoutes);
 app.use("/api/payments", paymentRoutes);
 
 app.get("/", (req, res) => {

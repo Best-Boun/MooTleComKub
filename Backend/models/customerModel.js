@@ -92,34 +92,6 @@ class CustomerModel {
     return rows;
   }
 
-  // ดึงประวัติการเคลมของลูกค้า
-  static async getCustomerWarrantyClaims(userId) {
-    const [rows] = await db.query(
-      `
-    SELECT
-      wc.claim_id,
-      wc.claim_number,
-      wc.claim_status,
-      wc.submitted_at,
-      wc.completed_at,
-      w.serial_number,
-      p.product_name
-    FROM warranty_claims wc
-    LEFT JOIN warranties w
-      ON wc.warranty_id = w.warranty_id
-    LEFT JOIN order_items oi
-      ON w.order_item_id = oi.order_item_id
-    LEFT JOIN products p
-      ON oi.product_id = p.product_id
-    WHERE wc.user_id = ?
-    ORDER BY wc.submitted_at DESC
-    `,
-      [userId],
-    );
-
-    return rows;
-  }
-
   // สถิติของลูกค้า
   static async getCustomerStatistics(userId) {
     const [[stats]] = await db.query(

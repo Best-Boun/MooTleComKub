@@ -31,12 +31,6 @@ const customerService = {
     return response.data;
   },
 
-  // ดึง Warranty Claim ของลูกค้า
-  async getCustomerWarranty(id) {
-    const response = await api.get(`/customers/${id}/warranty`);
-    return response.data;
-  },
-
   // ดึงสถิติของลูกค้า
   async getCustomerStatistics(id) {
     const response = await api.get(`/customers/${id}/statistics`);

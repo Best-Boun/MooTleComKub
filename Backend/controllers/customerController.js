@@ -121,27 +121,6 @@ class CustomerController {
     }
   }
 
-  // GET /api/customers/:id/warranty
-  static async getCustomerWarrantyClaims(req, res) {
-    try {
-      const claims = await CustomerModel.getCustomerWarrantyClaims(
-        req.params.id,
-      );
-
-      res.status(200).json({
-        success: true,
-        data: claims,
-      });
-    } catch (error) {
-      console.error(error);
-
-      res.status(500).json({
-        success: false,
-        message: "Failed to fetch customer warranty claims",
-      });
-    }
-  }
-
   // GET /api/customers/:id/statistics
   static async getCustomerStatistics(req, res) {
     try {

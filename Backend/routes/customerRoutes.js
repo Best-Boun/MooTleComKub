@@ -76,14 +76,6 @@ router.get(
   CustomerController.getCustomerOrders,
 );
 
-// Warranty History ของลูกค้า
-router.get(
-  "/:id/warranty",
-  authMiddleware,
-  requireSelfOrAdmin,
-  CustomerController.getCustomerWarrantyClaims,
-);
-
 // Statistics ของลูกค้า
 router.get(
   "/:id/statistics",

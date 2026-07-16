@@ -9,11 +9,6 @@ import Cart from "../pages/Cart";
 import Checkout from "../pages/Checkout";
 import MyOrders from "../pages/Orders";
 import OrderDetail from "../pages/OrderDetail"; // ของลูกค้า
-import Warranty from "../pages/Warranty";
-import WarrantyDetail from "../pages/WarrantyDetail";
-import WarrantyClaimNew from "../pages/WarrantyClaimNew";
-import WarrantyClaims from "../pages/WarrantyClaims";
-import WarrantyClaimDetail from "../pages/WarrantyClaimDetail";
 import MyAccount from "../pages/MyAccount";
 
 // Admin Pages
@@ -23,10 +18,8 @@ import Products from "../pages/admin/Products";
 import Orders from "../pages/admin/Orders";
 import Customers from "../pages/admin/Customers";
 import Reports from "../pages/admin/Reports";
-import AdminWarrantyClaims from "../pages/admin/WarrantyClaims";
 import CustomerDetail from "../pages/admin/CustomerDetail";
 import AdminOrderDetail from "../pages/admin/OrderDetail";  // ของแอดมิน
-import AdminWarrantyClaimDetail from "../pages/admin/WarrantyClaimDetail";
 
 import PrivateRoute from "./PrivateRoute";
 import AdminLayout from "../components/layout/AdminLayout";
@@ -103,51 +96,6 @@ export default function AppRoutes() {
         />
 
         <Route
-          path="/warranty"
-          element={
-            <PrivateRoute>
-              <Warranty />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/warranty/:id"
-          element={
-            <PrivateRoute>
-              <WarrantyDetail />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/warranty-claims/new"
-          element={
-            <PrivateRoute>
-              <WarrantyClaimNew />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/warranty-claims"
-          element={
-            <PrivateRoute>
-              <WarrantyClaims />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
-          path="/warranty-claims/:id"
-          element={
-            <PrivateRoute>
-              <WarrantyClaimDetail />
-            </PrivateRoute>
-          }
-        />
-
-        <Route
           path="/my-account"
           element={
             <PrivateRoute>
@@ -173,13 +121,6 @@ export default function AppRoutes() {
           {/* Orders */}
           <Route path="orders" element={<Orders />} />
           <Route path="orders/:id" element={<AdminOrderDetail />} />
-
-          {/* Warranty */}
-          <Route path="warranty-claims" element={<AdminWarrantyClaims />} />
-          <Route
-            path="warranty-claims/:id"
-            element={<AdminWarrantyClaimDetail />}
-          />
 
           {/* Customers */}
           <Route path="customers" element={<Customers />} />

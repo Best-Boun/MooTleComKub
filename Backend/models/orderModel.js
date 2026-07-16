@@ -1,5 +1,4 @@
 const db = require("../config/db");
-const WarrantyModel = require("./warrantyModel");
 
 class OrderModel {
   // ดึงออเดอร์ทั้งหมด
@@ -80,10 +79,6 @@ WHERE o.order_id = ?
       `,
       [status, id],
     );
-
-    if (result.affectedRows > 0 && status === "DELIVERED") {
-      await WarrantyModel.createWarrantiesForOrder(id);
-    }
 
     return result;
   }

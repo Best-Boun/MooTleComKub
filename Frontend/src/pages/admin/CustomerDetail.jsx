@@ -21,7 +21,6 @@ export default function CustomerDetail() {
   const [customer, setCustomer] = useState(null);
   const [statistics, setStatistics] = useState(null);
   const [orders, setOrders] = useState([]);
-  const [claims, setClaims] = useState([]);
 
   useEffect(() => {
     fetchCustomerDetail();
@@ -31,19 +30,15 @@ export default function CustomerDetail() {
     try {
       setLoading(true);
 
-      const [customerRes, statsRes, ordersRes, warrantyRes] = await Promise.all(
-        [
-          customerService.getCustomerById(id),
-          customerService.getCustomerStatistics(id),
-          customerService.getCustomerOrders(id),
-          customerService.getCustomerWarranty(id),
-        ],
-      );
+      const [customerRes, statsRes, ordersRes] = await Promise.all([
+        customerService.getCustomerById(id),
+        customerService.getCustomerStatistics(id),
+        customerService.getCustomerOrders(id),
+      ]);
 
       setCustomer(customerRes.data);
       setStatistics(statsRes.data);
       setOrders(ordersRes.data);
-      setClaims(warrantyRes.data);
     } catch (error) {
       console.error(error);
     } finally {
