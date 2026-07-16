@@ -6,7 +6,7 @@ class CategoryModel {
     const [rows] = await db.query(`
       SELECT *
       FROM categories
-      ORDER BY category_id DESC
+      ORDER BY category_id ASC
     `);
 
     return rows;

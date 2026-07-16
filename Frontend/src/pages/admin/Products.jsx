@@ -88,6 +88,43 @@ export default function Products() {
     }
   };
 
+  const handleToggleStatus = async (product) => {
+    const action = product.status === "ACTIVE" ? "Disable" : "Enable";
+
+    const result = await Swal.fire({
+      title: `${action} Product?`,
+      text: `Do you want to ${action.toLowerCase()} "${product.product_name}"?`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: action,
+      cancelButtonText: "Cancel",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const res = await productService.toggleStatus(product.product_id);
+
+      if (res.success) {
+        Swal.fire({
+          icon: "success",
+          title: "Updated!",
+          text: res.message,
+          timer: 1200,
+          showConfirmButton: false,
+        });
+
+        fetchProducts();
+      }
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Update Failed",
+        text: error.response?.data?.message || "Something went wrong",
+      });
+    }
+  };
+
   // เพิ่มสินค้า
   const handleAdd = () => {
     setMode("add");
@@ -164,6 +201,7 @@ export default function Products() {
                 products={currentProducts}
                 onDelete={handleDelete}
                 onEdit={handleEdit}
+                onToggleStatus={handleToggleStatus}
               />
 
               <CustomPagination

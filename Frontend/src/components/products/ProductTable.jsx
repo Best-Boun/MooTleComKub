@@ -1,6 +1,11 @@
 import { Badge, Button, Table } from "react-bootstrap";
 
-export default function ProductTable({ products, onDelete, onEdit }) {
+export default function ProductTable({
+  products,
+  onDelete,
+  onEdit,
+  onToggleStatus,
+}) {
   return (
     <Table striped bordered hover responsive>
       <thead className="table-dark">
@@ -62,22 +67,25 @@ export default function ProductTable({ products, onDelete, onEdit }) {
               </td>
 
               <td>
-                <Button
-                  size="sm"
-                  variant="warning"
-                  className="me-2"
-                  onClick={() => onEdit(product)}
-                >
-                  Edit
-                </Button>
+                <div className="d-flex gap-2 flex-wrap">
+                  <Button
+                    size="sm"
+                    variant="warning"
+                    onClick={() => onEdit(product)}
+                  >
+                    Edit
+                  </Button>
 
-                <Button
-                  size="sm"
-                  variant="danger"
-                  onClick={() => onDelete(product.product_id)}
-                >
-                  Delete
-                </Button>
+                  
+
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    onClick={() => onDelete(product.product_id)}
+                  >
+                    Delete
+                  </Button>
+                </div>
               </td>
             </tr>
           ))
