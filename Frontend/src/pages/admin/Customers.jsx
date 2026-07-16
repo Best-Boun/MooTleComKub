@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, Spinner } from "react-bootstrap";
 import Swal from "sweetalert2";
 
@@ -11,16 +12,15 @@ import CustomerModal from "../../components/customers/CustomerModal";
 import CustomPagination from "../../components/common/Pagination";
 
 export default function Customers() {
-  const [customers, setCustomers] = useState([]);
+  const navigate = useNavigate();
 
+  const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
-
   const [status, setStatus] = useState("");
 
   const [showModal, setShowModal] = useState(false);
-
   const [selectedCustomer, setSelectedCustomer] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -28,7 +28,6 @@ export default function Customers() {
   const customersPerPage = 10;
 
   // โหลด Customers
-
   const fetchCustomers = async () => {
     try {
       setLoading(true);
@@ -41,9 +40,7 @@ export default function Customers() {
 
       Swal.fire({
         icon: "error",
-
         title: "Error",
-
         text: "Failed to load customers",
       });
     } finally {
@@ -56,37 +53,26 @@ export default function Customers() {
   }, []);
 
   // เปิด Edit
-
   const handleEdit = (customer) => {
     setSelectedCustomer(customer);
-
     setShowModal(true);
   };
 
   // หลัง Update
-
   const handleSuccess = () => {
     setShowModal(false);
-
     fetchCustomers();
   };
 
   // Delete
-
   const handleDelete = async (id) => {
     const result = await Swal.fire({
       title: "Delete Customer?",
-
       text: "คุณต้องการลบลูกค้าคนนี้หรือไม่",
-
       icon: "warning",
-
       showCancelButton: true,
-
       confirmButtonColor: "#dc3545",
-
       cancelButtonText: "Cancel",
-
       confirmButtonText: "Delete",
     });
 
@@ -98,13 +84,9 @@ export default function Customers() {
       if (res.success) {
         await Swal.fire({
           icon: "success",
-
           title: "Deleted!",
-
           text: res.message,
-
           timer: 1200,
-
           showConfirmButton: false,
         });
 
@@ -113,16 +95,13 @@ export default function Customers() {
     } catch (error) {
       Swal.fire({
         icon: "error",
-
         title: "Delete Failed",
-
         text: error.response?.data?.message || "Something went wrong",
       });
     }
   };
 
   // Filter
-
   const filteredCustomers = customers.filter((customer) => {
     const fullName = `${customer.first_name} ${customer.last_name}`;
 
@@ -136,9 +115,7 @@ export default function Customers() {
   });
 
   // Pagination
-
   const indexOfLast = currentPage * customersPerPage;
-
   const indexOfFirst = indexOfLast - customersPerPage;
 
   const currentCustomers = filteredCustomers.slice(indexOfFirst, indexOfLast);
@@ -166,6 +143,9 @@ export default function Customers() {
             <>
               <CustomerTable
                 customers={currentCustomers}
+                onView={(customer) =>
+                  navigate(`/admin/customers/${customer.user_id}`)
+                }
                 onEdit={handleEdit}
                 onDelete={handleDelete}
               />

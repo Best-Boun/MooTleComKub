@@ -1,26 +1,25 @@
 import { useEffect, useState } from "react";
-import { Button, Card, Spinner } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
+import { Card, Spinner } from "react-bootstrap";
 import Swal from "sweetalert2";
 
 import orderService from "../../services/orderService";
 
 import OrderTable from "../../components/orders/OrderTable";
 import OrderFilter from "../../components/orders/OrderFilter";
-import OrderDetailModal from "../../components/orders/OrderDetail";
-
 import CustomPagination from "../../components/common/Pagination";
 
 export default function Orders() {
+  const navigate = useNavigate();
+
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
 
-  const [showModal, setShowModal] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState(null);
-
   const [currentPage, setCurrentPage] = useState(1);
+
   const ordersPerPage = 10;
 
   // โหลด Orders
@@ -48,10 +47,9 @@ export default function Orders() {
     fetchOrders();
   }, []);
 
-  // เปิดรายละเอียด
+  // เปิดหน้า Detail
   const handleView = (order) => {
-    setSelectedOrder(order);
-    setShowModal(true);
+    navigate(`/admin/orders/${order.order_id}`);
   };
 
   // ลบ Order
@@ -105,7 +103,6 @@ export default function Orders() {
 
   // Pagination
   const indexOfLast = currentPage * ordersPerPage;
-
   const indexOfFirst = indexOfLast - ordersPerPage;
 
   const currentOrders = filteredOrders.slice(indexOfFirst, indexOfLast);
@@ -113,53 +110,37 @@ export default function Orders() {
   const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
 
   return (
-    <>
-      <Card className="shadow-sm border-0">
-        <Card.Body>
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <h3 className="fw-bold mb-0">Orders</h3>
+    <Card className="shadow-sm border-0">
+      <Card.Body>
+        <h3 className="fw-bold mb-4">Orders</h3>
+
+        <OrderFilter
+          search={search}
+          setSearch={setSearch}
+          status={status}
+          setStatus={setStatus}
+        />
+
+        {loading ? (
+          <div className="text-center py-5">
+            <Spinner animation="border" />
           </div>
+        ) : (
+          <>
+            <OrderTable
+              orders={currentOrders}
+              onView={handleView}
+              onDelete={handleDelete}
+            />
 
-          <OrderFilter
-            search={search}
-            setSearch={setSearch}
-            status={status}
-            setStatus={setStatus}
-          />
-
-          {loading ? (
-            <div className="text-center py-5">
-              <Spinner animation="border" />
-            </div>
-          ) : (
-            <>
-              <OrderTable
-                orders={currentOrders}
-                onView={handleView}
-                onDelete={handleDelete}
-              />
-
-              <CustomPagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                setCurrentPage={setCurrentPage}
-              />
-            </>
-          )}
-        </Card.Body>
-      </Card>
-
-      <OrderDetailModal
-        show={showModal}
-        onHide={() => {
-          setShowModal(false);
-        }}
-        order={selectedOrder}
-        onSuccess={() => {
-          setShowModal(false);
-          fetchOrders();
-        }}
-      />
-    </>
+            <CustomPagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              setCurrentPage={setCurrentPage}
+            />
+          </>
+        )}
+      </Card.Body>
+    </Card>
   );
 }

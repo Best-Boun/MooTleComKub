@@ -101,6 +101,65 @@ class CustomerController {
       });
     }
   }
+
+  // GET /api/customers/:id/orders
+  static async getCustomerOrders(req, res) {
+    try {
+      const orders = await CustomerModel.getCustomerOrders(req.params.id);
+
+      res.status(200).json({
+        success: true,
+        data: orders,
+      });
+    } catch (error) {
+      console.error(error);
+
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch customer orders",
+      });
+    }
+  }
+
+  // GET /api/customers/:id/warranty
+  static async getCustomerWarrantyClaims(req, res) {
+    try {
+      const claims = await CustomerModel.getCustomerWarrantyClaims(
+        req.params.id,
+      );
+
+      res.status(200).json({
+        success: true,
+        data: claims,
+      });
+    } catch (error) {
+      console.error(error);
+
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch customer warranty claims",
+      });
+    }
+  }
+
+  // GET /api/customers/:id/statistics
+  static async getCustomerStatistics(req, res) {
+    try {
+      const stats = await CustomerModel.getCustomerStatistics(req.params.id);
+
+      res.status(200).json({
+        success: true,
+        data: stats,
+      });
+    } catch (error) {
+      console.error(error);
+
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch customer statistics",
+      });
+    }
+  }
 }
 
 module.exports = CustomerController;

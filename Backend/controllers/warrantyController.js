@@ -105,12 +105,10 @@ class WarrantyController {
     }
   }
 
-  // GET /api/warranties/claims/:id
-  static async getClaimById(req, res) {
+  // GET /api/warranty-claims/:id
+  static async getClaimByIdForAdmin(req, res) {
     try {
-      const userId = req.user.user_id;
-      const claimId = req.params.id;
-      const claim = await WarrantyModel.getClaimById(userId, claimId);
+      const claim = await WarrantyModel.getClaimByIdForAdmin(req.params.id);
 
       if (!claim) {
         return res.status(404).json({
@@ -168,7 +166,10 @@ class WarrantyController {
       if (!result || result.success === false || result.affectedRows === 0) {
         return res.status(400).json({
           success: false,
-          message: result && result.error ? result.error : "Failed to update claim status",
+          message:
+            result && result.error
+              ? result.error
+              : "Failed to update claim status",
         });
       }
 

@@ -24,6 +24,24 @@ const customerService = {
     const response = await api.delete(`/customers/${id}`);
     return response.data;
   },
+
+  // ดึง Order ของลูกค้า
+  async getCustomerOrders(id) {
+    const response = await api.get(`/customers/${id}/orders`);
+    return response.data;
+  },
+
+  // ดึง Warranty Claim ของลูกค้า
+  async getCustomerWarranty(id) {
+    const response = await api.get(`/customers/${id}/warranty`);
+    return response.data;
+  },
+
+  // ดึงสถิติของลูกค้า
+  async getCustomerStatistics(id) {
+    const response = await api.get(`/customers/${id}/statistics`);
+    return response.data;
+  },
 };
 
 export default customerService;

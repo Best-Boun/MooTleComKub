@@ -13,7 +13,12 @@ router.post("/", authMiddleware, WarrantyController.createClaim);
 router.get("/my", authMiddleware, WarrantyController.getMyClaims);
 
 // ดูรายละเอียดคำขอเคลม
-router.get("/:id", authMiddleware, WarrantyController.getClaimById);
+router.get(
+  "/:id",
+  authMiddleware,
+  requireRole(ROLES.ADMIN, ROLES.SUPER_ADMIN),
+  WarrantyController.getClaimByIdForAdmin,
+);
 
 // ดูคำขอเคลมทั้งหมด (เฉพาะ Admin/SuperAdmin)
 router.get(

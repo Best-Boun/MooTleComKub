@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Badge, Button, Card, Form, Spinner, Table } from "react-bootstrap";
 import Swal from "sweetalert2";
 
 import warrantyClaimAdminService from "../../services/warrantyClaimAdminService";
-import WarrantyClaimDetailModal from "../../components/warrantyClaims/WarrantyClaimDetailModal";
+
 import CustomPagination from "../../components/common/Pagination";
 
 const STATUS_BADGE = {
@@ -14,13 +15,14 @@ const STATUS_BADGE = {
 };
 
 export default function WarrantyClaims() {
+
+  const navigate = useNavigate();
   const [claims, setClaims] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const [status, setStatus] = useState("");
 
-  const [showModal, setShowModal] = useState(false);
-  const [selectedClaim, setSelectedClaim] = useState(null);
+
 
   const [currentPage, setCurrentPage] = useState(1);
   const claimsPerPage = 10;
@@ -52,8 +54,7 @@ export default function WarrantyClaims() {
 
   // เปิดรายละเอียด
   const handleView = (claim) => {
-    setSelectedClaim(claim);
-    setShowModal(true);
+    navigate(`/admin/warranty-claims/${claim.claim_id}`);
   };
 
   // Filter
@@ -76,7 +77,10 @@ export default function WarrantyClaims() {
           </div>
 
           <Form.Group className="mb-3" style={{ maxWidth: 240 }}>
-            <Form.Select value={status} onChange={(e) => setStatus(e.target.value)}>
+            <Form.Select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
               <option value="">All Status</option>
               <option value="PENDING">PENDING</option>
               <option value="APPROVED">APPROVED</option>
@@ -119,7 +123,9 @@ export default function WarrantyClaims() {
                         <td>{claim.serial_number || "-"}</td>
                         <td>#{claim.order_item_id ?? "-"}</td>
                         <td>
-                          <Badge bg={STATUS_BADGE[claim.claim_status] || "primary"}>
+                          <Badge
+                            bg={STATUS_BADGE[claim.claim_status] || "primary"}
+                          >
                             {claim.claim_status}
                           </Badge>
                         </td>
@@ -129,7 +135,11 @@ export default function WarrantyClaims() {
                             : "-"}
                         </td>
                         <td>
-                          <Button size="sm" variant="info" onClick={() => handleView(claim)}>
+                          <Button
+                            size="sm"
+                            variant="info"
+                            onClick={() => handleView(claim)}
+                          >
                             View
                           </Button>
                         </td>
@@ -149,16 +159,7 @@ export default function WarrantyClaims() {
         </Card.Body>
       </Card>
 
-      <WarrantyClaimDetailModal
-        show={showModal}
-        onHide={() => setShowModal(false)}
-        claim={selectedClaim}
-        onSuccess={() => {
-          setShowModal(false);
-          fetchClaims();
-        }}
-      />
+      
     </>
   );
 }
-

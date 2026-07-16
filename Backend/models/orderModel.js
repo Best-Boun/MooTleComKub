@@ -27,13 +27,24 @@ class OrderModel {
     const [order] = await db.query(
       `
       SELECT
-        o.*,
-        CONCAT(u.first_name, ' ', u.last_name) AS full_name,
-        u.email
-      FROM orders o
-      LEFT JOIN users u
-        ON o.user_id = u.user_id
-      WHERE o.order_id = ?
+  o.*,
+  CONCAT(u.first_name, ' ', u.last_name) AS full_name,
+  u.email,
+
+  p.payment_method,
+  p.payment_status,
+  p.transaction_id,
+  p.paid_at
+
+FROM orders o
+
+LEFT JOIN users u
+  ON o.user_id = u.user_id
+
+LEFT JOIN payments p
+  ON o.order_id = p.order_id
+
+WHERE o.order_id = ?
       `,
       [id],
     );

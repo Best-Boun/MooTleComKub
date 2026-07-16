@@ -7,7 +7,13 @@ const warrantyClaimAdminService = {
     return response.data;
   },
 
-  // อัปเดตสถานะคำขอเคลม (แอดมิน)
+  // ดึงรายละเอียด Claim
+  async getClaimById(id) {
+    const response = await api.get(`/warranty-claims/${id}`);
+    return response.data;
+  },
+
+  // อัปเดตสถานะคำขอเคลม
   async updateClaimStatus(claimId, claim_status, admin_remark) {
     const response = await api.put(`/warranty-claims/${claimId}/status`, {
       claim_status,

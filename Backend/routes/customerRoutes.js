@@ -68,4 +68,28 @@ router.delete(
   CustomerController.deleteCustomer,
 );
 
+// Order History ของลูกค้า
+router.get(
+  "/:id/orders",
+  authMiddleware,
+  requireSelfOrAdmin,
+  CustomerController.getCustomerOrders,
+);
+
+// Warranty History ของลูกค้า
+router.get(
+  "/:id/warranty",
+  authMiddleware,
+  requireSelfOrAdmin,
+  CustomerController.getCustomerWarrantyClaims,
+);
+
+// Statistics ของลูกค้า
+router.get(
+  "/:id/statistics",
+  authMiddleware,
+  requireSelfOrAdmin,
+  CustomerController.getCustomerStatistics,
+);
+
 module.exports = router;

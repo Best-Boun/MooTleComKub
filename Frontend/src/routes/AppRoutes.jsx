@@ -8,7 +8,7 @@ import ProductDetail from "../pages/ProductDetail";
 import Cart from "../pages/Cart";
 import Checkout from "../pages/Checkout";
 import MyOrders from "../pages/Orders";
-import OrderDetail from "../pages/OrderDetail";
+import OrderDetail from "../pages/OrderDetail"; // ของลูกค้า
 import Warranty from "../pages/Warranty";
 import WarrantyDetail from "../pages/WarrantyDetail";
 import WarrantyClaimNew from "../pages/WarrantyClaimNew";
@@ -16,6 +16,7 @@ import WarrantyClaims from "../pages/WarrantyClaims";
 import WarrantyClaimDetail from "../pages/WarrantyClaimDetail";
 import MyAccount from "../pages/MyAccount";
 
+// Admin Pages
 import Dashboard from "../pages/admin/Dashboard";
 import Categories from "../pages/admin/Categories";
 import Products from "../pages/admin/Products";
@@ -23,18 +24,12 @@ import Orders from "../pages/admin/Orders";
 import Customers from "../pages/admin/Customers";
 import Reports from "../pages/admin/Reports";
 import AdminWarrantyClaims from "../pages/admin/WarrantyClaims";
-
-
+import CustomerDetail from "../pages/admin/CustomerDetail";
+import AdminOrderDetail from "../pages/admin/OrderDetail";  // ของแอดมิน
+import AdminWarrantyClaimDetail from "../pages/admin/WarrantyClaimDetail";
 
 import PrivateRoute from "./PrivateRoute";
 import AdminLayout from "../components/layout/AdminLayout";
-
-const ComingSoon = ({ title }) => (
-  <div style={{ padding: "2rem" }}>
-    <h1>{title}</h1>
-    <p>Coming Soon</p>
-  </div>
-);
 
 export default function AppRoutes() {
   return (
@@ -49,8 +44,10 @@ export default function AppRoutes() {
             </PrivateRoute>
           }
         />
+
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+
         <Route
           path="/products"
           element={
@@ -59,6 +56,7 @@ export default function AppRoutes() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/products/:id"
           element={
@@ -67,6 +65,7 @@ export default function AppRoutes() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/cart"
           element={
@@ -75,6 +74,7 @@ export default function AppRoutes() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/checkout"
           element={
@@ -83,6 +83,7 @@ export default function AppRoutes() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/orders"
           element={
@@ -91,6 +92,7 @@ export default function AppRoutes() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/orders/:id"
           element={
@@ -99,6 +101,7 @@ export default function AppRoutes() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/warranty"
           element={
@@ -107,6 +110,7 @@ export default function AppRoutes() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/warranty/:id"
           element={
@@ -115,6 +119,7 @@ export default function AppRoutes() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/warranty-claims/new"
           element={
@@ -123,6 +128,7 @@ export default function AppRoutes() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/warranty-claims"
           element={
@@ -131,6 +137,7 @@ export default function AppRoutes() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/warranty-claims/:id"
           element={
@@ -139,6 +146,7 @@ export default function AppRoutes() {
             </PrivateRoute>
           }
         />
+
         <Route
           path="/my-account"
           element={
@@ -148,7 +156,8 @@ export default function AppRoutes() {
           }
         />
 
-        {/* Admin */}
+        {/* ================= ADMIN ================= */}
+
         <Route
           path="/admin"
           element={
@@ -160,9 +169,23 @@ export default function AppRoutes() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="categories" element={<Categories />} />
           <Route path="products" element={<Products />} />
+
+          {/* Orders */}
           <Route path="orders" element={<Orders />} />
+          <Route path="orders/:id" element={<AdminOrderDetail />} />
+
+          {/* Warranty */}
           <Route path="warranty-claims" element={<AdminWarrantyClaims />} />
+          <Route
+            path="warranty-claims/:id"
+            element={<AdminWarrantyClaimDetail />}
+          />
+
+          {/* Customers */}
           <Route path="customers" element={<Customers />} />
+          <Route path="customers/:id" element={<CustomerDetail />} />
+
+          {/* Reports */}
           <Route
             path="reports"
             element={
@@ -174,7 +197,7 @@ export default function AppRoutes() {
         </Route>
 
         {/* Default */}
-        <Route path="*" element={<Navigate to="/login" />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </BrowserRouter>
   );
