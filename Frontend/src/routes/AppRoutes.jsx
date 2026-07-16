@@ -18,7 +18,6 @@ import Products from "../pages/admin/Products";
 import Orders from "../pages/admin/Orders";
 import Customers from "../pages/admin/Customers";
 import Reports from "../pages/admin/Reports";
-import SpecTemplates from "../pages/admin/SpecTemplates";
 import CustomerDetail from "../pages/admin/CustomerDetail";
 import AdminOrderDetail from "../pages/admin/OrderDetail";  // ของแอดมิน
 
@@ -133,16 +132,6 @@ export default function AppRoutes() {
             element={
               <PrivateRoute allowedRoles={[3]}>
                 <Reports />
-              </PrivateRoute>
-            }
-          />
-
-          {/* Spec Templates */}
-          <Route
-            path="spec-templates"
-            element={
-              <PrivateRoute allowedRoles={[3]}>
-                <SpecTemplates />
               </PrivateRoute>
             }
           />

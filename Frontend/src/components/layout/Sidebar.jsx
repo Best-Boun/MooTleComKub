@@ -47,13 +47,6 @@ export default function Sidebar() {
             Reports
           </NavLink>
         )}
-
-        {isSuperAdmin && (
-          <NavLink to="/admin/spec-templates" className="nav-link text-white">
-            <i className="bi bi-list-check me-2"></i>
-            Spec Templates
-          </NavLink>
-        )}
       </div>
 
       {/* Back to Store */}
