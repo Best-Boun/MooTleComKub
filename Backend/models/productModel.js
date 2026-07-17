@@ -52,12 +52,17 @@ class ProductModel {
       price,
       stock,
       warranty_provider,
+      cpu,
+      gpu,
+      ram,
+      display,
+      storage,
       status,
     } = product;
 
     const [result] = await db.query(
       `
-      INSERT INTO products
+    INSERT INTO products
 (
   category_id,
   brand_id,
@@ -68,9 +73,14 @@ class ProductModel {
   price,
   stock,
   warranty_provider,
+  cpu,
+  gpu,
+  ram,
+  display,
+  storage,
   status
 )
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         category_id,
@@ -82,6 +92,11 @@ class ProductModel {
         price,
         stock,
         warranty_provider,
+        cpu,
+        gpu,
+        ram,
+        display,
+        storage,
         status,
       ],
     );
@@ -101,24 +116,34 @@ class ProductModel {
       price,
       stock,
       warranty_provider,
+      cpu,
+      gpu,
+      ram,
+      display,
+      storage,
       status,
     } = product;
 
     const [result] = await db.query(
       `
-      UPDATE products
-      SET
+     UPDATE products
+SET
   category_id = ?,
   brand_id = ?,
   sku = ?,
   image = ?,
   product_name = ?,
-        description = ?,
-        price = ?,
-        stock = ?,
-        warranty_provider = ?,
-        status = ?
-      WHERE product_id = ?
+  description = ?,
+  price = ?,
+  stock = ?,
+  warranty_provider = ?,
+  cpu = ?,
+  gpu = ?,
+  ram = ?,
+  display = ?,
+  storage = ?,
+  status = ?
+WHERE product_id = ?
       `,
       [
         category_id,
@@ -130,6 +155,11 @@ class ProductModel {
         price,
         stock,
         warranty_provider,
+        cpu,
+        gpu,
+        ram,
+        display,
+        storage,
         status,
         id,
       ],

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button, Col, Form, Row, Spinner } from "react-bootstrap";
 import productService from "../../services/productService";
+import brandService from "../../services/brandService";
 import categoryService from "../../services/categoryService";
 import Swal from "sweetalert2";
 
@@ -17,10 +18,17 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
     price: "",
     stock: "",
     warranty_provider: "",
+    cpu: "",
+    gpu: "",
+    ram: "",
+    display: "",
+    storage: "",
     status: "ACTIVE",
   });
 
   const [categories, setCategories] = useState([]);
+  const [brands, setBrands] = useState([]);
+  const [brandsLoading, setBrandsLoading] = useState(true);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
 
   useEffect(() => {
@@ -37,8 +45,37 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
       }
     };
 
-    loadCategories();
+
+   loadCategories();
+  
   }, []);
+
+
+  useEffect(() => {
+    const loadBrands = async () => {
+      if (!formData.category_id) {
+        setBrands([]);
+        return;
+      }
+
+      try {
+        setBrandsLoading(true);
+
+        const res = await brandService.getBrandsByCategory(
+          formData.category_id,
+        );
+
+        setBrands(Array.isArray(res?.data) ? res.data : []);
+      } catch (err) {
+        console.error(err);
+        setBrands([]);
+      } finally {
+        setBrandsLoading(false);
+      }
+    };
+
+    loadBrands();
+  }, [formData.category_id]);
 
   useEffect(() => {
     if (mode === "edit" && product) {
@@ -52,6 +89,11 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
         price: product.price || "",
         stock: product.stock || "",
         warranty_provider: product.warranty_provider || "",
+        cpu: product.cpu || "",
+        gpu: product.gpu || "",
+        ram: product.ram || "",
+        display: product.display || "",
+        storage: product.storage || "",
         status: product.status || "ACTIVE",
       });
 
@@ -157,14 +199,28 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
 
         <Col md={6}>
           <Form.Group className="mb-3">
-            <Form.Label>Brand ID</Form.Label>
+            <Form.Label>Brand</Form.Label>
 
-            <Form.Control
-              name="brand_id"
-              value={formData.brand_id}
-              onChange={handleChange}
-              required
-            />
+            {brandsLoading ? (
+              <div>
+                <Spinner animation="border" size="sm" />
+              </div>
+            ) : (
+              <Form.Select
+                name="brand_id"
+                value={formData.brand_id}
+                onChange={handleChange}
+                required
+              >
+                <option value="">-- Select Brand --</option>
+
+                {brands.map((brand) => (
+                  <option key={brand.brand_id} value={brand.brand_id}>
+                    {brand.brand_name}
+                  </option>
+                ))}
+              </Form.Select>
+            )}
           </Form.Group>
         </Col>
       </Row>
@@ -265,6 +321,68 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
           name="warranty_provider"
           value={formData.warranty_provider}
           onChange={handleChange}
+        />
+      </Form.Group>
+
+      <Row>
+        <Col md={6}>
+          <Form.Group className="mb-3">
+            <Form.Label>CPU</Form.Label>
+            <Form.Control
+              name="cpu"
+              value={formData.cpu}
+              onChange={handleChange}
+              placeholder="e.g. Intel Core i7-14700HX"
+            />
+          </Form.Group>
+        </Col>
+
+        <Col md={6}>
+          <Form.Group className="mb-3">
+            <Form.Label>GPU</Form.Label>
+            <Form.Control
+              name="gpu"
+              value={formData.gpu}
+              onChange={handleChange}
+              placeholder="e.g. RTX 4060"
+            />
+          </Form.Group>
+        </Col>
+      </Row>
+
+      <Row>
+        <Col md={6}>
+          <Form.Group className="mb-3">
+            <Form.Label>RAM</Form.Label>
+            <Form.Control
+              name="ram"
+              value={formData.ram}
+              onChange={handleChange}
+              placeholder="e.g. 16GB DDR5"
+            />
+          </Form.Group>
+        </Col>
+
+        <Col md={6}>
+          <Form.Group className="mb-3">
+            <Form.Label>Storage</Form.Label>
+            <Form.Control
+              name="storage"
+              value={formData.storage}
+              onChange={handleChange}
+              placeholder="e.g. 1TB SSD"
+            />
+          </Form.Group>
+        </Col>
+      </Row>
+
+      <Form.Group className="mb-3">
+        <Form.Label>Display</Form.Label>
+        <Form.Control
+          name="display"
+          value={formData.display}
+          onChange={handleChange}
+          placeholder="e.g. 15.6-inch FHD 144Hz"
         />
       </Form.Group>
 
