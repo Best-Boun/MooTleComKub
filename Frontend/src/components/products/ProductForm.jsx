@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Button, Col, Form, Row, Spinner } from "react-bootstrap";
+import { Button, Col, Form, Row, Spinner, InputGroup } from "react-bootstrap";
 import productService from "../../services/productService";
 import brandService from "../../services/brandService";
 import categoryService from "../../services/categoryService";
@@ -23,6 +23,12 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
     ram: "",
     display: "",
     storage: "",
+
+    mainboard: "",
+    power_supply: "",
+    case_name: "",
+    cooling: "",
+
     status: "ACTIVE",
   });
 
@@ -61,6 +67,10 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
       try {
         setBrandsLoading(true);
 
+        const res = await brandService.getBrandsByCategory(
+          formData.category_id,
+        );
+
         const brandList = Array.isArray(res?.data) ? res.data : [];
 
         setBrands(brandList);
@@ -72,7 +82,6 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
             brand_id: brandList[0].brand_id,
           }));
         }
-
       } catch (err) {
         console.error(err);
         setBrands([]);
@@ -101,6 +110,12 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
         ram: product.ram || "",
         display: product.display || "",
         storage: product.storage || "",
+
+        mainboard: product.mainboard || "",
+        power_supply: product.power_supply || "",
+        case_name: product.case_name || "",
+        cooling: product.cooling || "",
+
         status: product.status || "ACTIVE",
       });
 
@@ -111,6 +126,12 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
       setPreview("");
     }
   }, [mode, product]);
+
+  const selectedCategory = categories.find(
+    (c) => Number(c.category_id) === Number(formData.category_id),
+  );
+
+  const categoryName = selectedCategory?.category_name || "";
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -306,13 +327,31 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
           <Form.Group className="mb-3">
             <Form.Label>Price</Form.Label>
 
-            <Form.Control
-              type="number"
-              name="price"
-              value={formData.price}
-              onChange={handleChange}
-              required
-            />
+            <InputGroup>
+              <InputGroup.Text>฿</InputGroup.Text>
+
+              <Form.Control
+                type="text"
+                name="price"
+                value={
+                  formData.price
+                    ? Number(formData.price).toLocaleString("en-US")
+                    : ""
+                }
+                onChange={(e) => {
+                  const value = e.target.value.replace(/,/g, "");
+
+                  if (/^\d*$/.test(value)) {
+                    setFormData((prev) => ({
+                      ...prev,
+                      price: value,
+                    }));
+                  }
+                }}
+                placeholder="0"
+                required
+              />
+            </InputGroup>
           </Form.Group>
         </Col>
 
@@ -341,67 +380,130 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
         />
       </Form.Group>
 
-      <Row>
-        <Col md={6}>
-          <Form.Group className="mb-3">
-            <Form.Label>CPU</Form.Label>
-            <Form.Control
-              name="cpu"
-              value={formData.cpu}
-              onChange={handleChange}
-              placeholder="e.g. Intel Core i7-14700HX"
-            />
-          </Form.Group>
-        </Col>
+      {["Notebook", "Computer Set"].includes(categoryName) && (
+        <Row>
+          <Col md={6}>
+            <Form.Group className="mb-3">
+              <Form.Label>CPU</Form.Label>
+              <Form.Control
+                name="cpu"
+                value={formData.cpu}
+                onChange={handleChange}
+                placeholder="e.g. Intel Core i7-14700HX"
+              />
+            </Form.Group>
+          </Col>
 
-        <Col md={6}>
-          <Form.Group className="mb-3">
-            <Form.Label>GPU</Form.Label>
-            <Form.Control
-              name="gpu"
-              value={formData.gpu}
-              onChange={handleChange}
-              placeholder="e.g. RTX 4060"
-            />
-          </Form.Group>
-        </Col>
-      </Row>
+          <Col md={6}>
+            <Form.Group className="mb-3">
+              <Form.Label>GPU</Form.Label>
+              <Form.Control
+                name="gpu"
+                value={formData.gpu}
+                onChange={handleChange}
+                placeholder="e.g. RTX 4060"
+              />
+            </Form.Group>
+          </Col>
+        </Row>
+      )}
 
-      <Row>
-        <Col md={6}>
-          <Form.Group className="mb-3">
-            <Form.Label>RAM</Form.Label>
-            <Form.Control
-              name="ram"
-              value={formData.ram}
-              onChange={handleChange}
-              placeholder="e.g. 16GB DDR5"
-            />
-          </Form.Group>
-        </Col>
+      {categoryName === "Computer Set" && (
+        <Row>
+          <Col md={6}>
+            <Form.Group className="mb-3">
+              <Form.Label>Mainboard</Form.Label>
+              <Form.Control
+                name="mainboard"
+                value={formData.mainboard}
+                onChange={handleChange}
+                placeholder="e.g. ASUS B760M"
+              />
+            </Form.Group>
+          </Col>
 
-        <Col md={6}>
-          <Form.Group className="mb-3">
-            <Form.Label>Storage</Form.Label>
-            <Form.Control
-              name="storage"
-              value={formData.storage}
-              onChange={handleChange}
-              placeholder="e.g. 1TB SSD"
-            />
-          </Form.Group>
-        </Col>
-      </Row>
+          <Col md={6}>
+            <Form.Group className="mb-3">
+              <Form.Label>Power Supply</Form.Label>
+              <Form.Control
+                name="power_supply"
+                value={formData.power_supply}
+                onChange={handleChange}
+                placeholder="e.g. Corsair RM750e"
+              />
+            </Form.Group>
+          </Col>
+        </Row>
+      )}
 
-      <Form.Group className="mb-3">
-        <Form.Label>Display</Form.Label>
-        <Form.Control
-          name="display"
-          value={formData.display}
-          onChange={handleChange}
-          placeholder="e.g. 15.6-inch FHD 144Hz"
-        />
-      </Form.Group>
+      {categoryName === "Computer Set" && (
+        <Row>
+          <Col md={6}>
+            <Form.Group className="mb-3">
+              <Form.Label>Case</Form.Label>
+              <Form.Control
+                name="case_name"
+                value={formData.case_name}
+                onChange={handleChange}
+                placeholder="e.g. NZXT H5 Flow"
+              />
+            </Form.Group>
+          </Col>
+
+          <Col md={6}>
+            <Form.Group className="mb-3">
+              <Form.Label>Cooling</Form.Label>
+              <Form.Control
+                name="cooling"
+                value={formData.cooling}
+                onChange={handleChange}
+                placeholder="e.g. DeepCool AK620"
+              />
+            </Form.Group>
+          </Col>
+        </Row>
+      )}
+
+      {["Notebook", "Computer Set"].includes(categoryName) && (
+        <Row>
+          <Col md={6}>
+            <Form.Group className="mb-3">
+              <Form.Label>RAM</Form.Label>
+              <Form.Control
+                name="ram"
+                value={formData.ram}
+                onChange={handleChange}
+                placeholder="e.g. 16GB DDR5"
+              />
+            </Form.Group>
+          </Col>
+
+          <Col md={6}>
+            <Form.Group className="mb-3">
+              <Form.Label>Storage</Form.Label>
+              <Form.Control
+                name="storage"
+                value={formData.storage}
+                onChange={handleChange}
+                placeholder="e.g. 1TB SSD"
+              />
+            </Form.Group>
+          </Col>
+        </Row>
+      )}
+
+      {categoryName === "Notebook" && (
+        <Form.Group className="mb-3">
+          <Form.Label>Display</Form.Label>
+
+          <Form.Control
+            name="display"
+            value={formData.display}
+            onChange={handleChange}
+            placeholder="e.g. 15.6-inch FHD 144Hz"
+          />
+        </Form.Group>
+      )}
 
       <Form.Group className="mb-4">
         <Form.Label>Status</Form.Label>

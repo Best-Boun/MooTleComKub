@@ -24,6 +24,7 @@ export default function Products() {
 
   const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [brand, setBrand] = useState("");
   const [sortBy, setSortBy] = useState("newest");
   const [inStockOnly, setInStockOnly] = useState(false);
 
@@ -53,12 +54,27 @@ export default function Products() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    setBrand("");
+  }, [categoryId]);
+
   const handleReset = () => {
     setSearch("");
+    setBrand("");
     setCategoryId("");
     setSortBy("newest");
     setInStockOnly(false);
   };
+
+  const brands = useMemo(() => {
+    const filtered = products.filter(
+      (p) => !categoryId || String(p.category_id) === categoryId,
+    );
+
+    return [
+      ...new Set(filtered.map((p) => p.brand_name).filter(Boolean)),
+    ].sort();
+  }, [products, categoryId]);
 
   const visibleProducts = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -67,6 +83,7 @@ export default function Products() {
       // ซ่อนสินค้าที่ปิดการขายจากฝั่งลูกค้า
       .filter((p) => (p.status ? p.status === "ACTIVE" : true))
       .filter((p) => !categoryId || String(p.category_id) === categoryId)
+      .filter((p) => !brand || p.brand_name === brand)
       .filter((p) => !inStockOnly || Number(p.stock) > 0)
       .filter((p) => {
         if (!q) return true;
@@ -79,10 +96,14 @@ export default function Products() {
 
     switch (sortBy) {
       case "price_asc":
-        list = [...list].sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+        list = [...list].sort(
+          (a, b) => Number(a.price || 0) - Number(b.price || 0),
+        );
         break;
       case "price_desc":
-        list = [...list].sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
+        list = [...list].sort(
+          (a, b) => Number(b.price || 0) - Number(a.price || 0),
+        );
         break;
       case "name_asc":
         list = [...list].sort((a, b) =>
@@ -91,11 +112,13 @@ export default function Products() {
         break;
       default:
         // newest -> เรียงตาม product_id มากไปน้อย (ตามที่ backend ส่งมาอยู่แล้ว)
-        list = [...list].sort((a, b) => Number(b.product_id) - Number(a.product_id));
+        list = [...list].sort(
+          (a, b) => Number(b.product_id) - Number(a.product_id),
+        );
     }
 
     return list;
-  }, [products, search, categoryId, sortBy, inStockOnly]);
+  }, [products, search, categoryId, brand, sortBy, inStockOnly]);
 
   return (
     <div className="tck-home">
@@ -196,11 +219,15 @@ export default function Products() {
 
       <section className="tck-hero" style={{ padding: "32px 44px" }}>
         <div className="tck-eyebrow">TLECOMKUB / CATALOG</div>
-        <h1 className="tck-title" style={{ fontSize: "clamp(26px, 4vw, 38px)" }}>
+        <h1
+          className="tck-title"
+          style={{ fontSize: "clamp(26px, 4vw, 38px)" }}
+        >
           สินค้าทั้งหมด
         </h1>
         <p className="tck-sub" style={{ marginBottom: 0 }}>
-          ค้นหาและกรองคอมพิวเตอร์ตั้งโต๊ะ โน้ตบุ๊ก และอุปกรณ์เสริมที่ใช่สำหรับคุณ
+          ค้นหาและกรองคอมพิวเตอร์ตั้งโต๊ะ โน้ตบุ๊ก
+          และอุปกรณ์เสริมที่ใช่สำหรับคุณ
         </p>
       </section>
 
@@ -231,6 +258,20 @@ export default function Products() {
 
           <select
             className="tck-filter-select"
+            value={brand}
+            onChange={(e) => setBrand(e.target.value)}
+          >
+            <option value="">ทุกแบรนด์</option>
+
+            {brands.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
+            ))}
+          </select>
+
+          <select
+            className="tck-filter-select"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
           >
@@ -250,7 +291,11 @@ export default function Products() {
             มีสินค้าเท่านั้น
           </label>
 
-          <button type="button" className="tck-filter-reset" onClick={handleReset}>
+          <button
+            type="button"
+            className="tck-filter-reset"
+            onClick={handleReset}
+          >
             ล้างตัวกรอง
           </button>
         </div>
@@ -260,7 +305,9 @@ export default function Products() {
         <div className="tck-section-head">
           <h2 className="tck-section-title">รายการสินค้า</h2>
           <span className="tck-section-tag tck-mono">
-            {loading ? "LOADING…" : `${visibleProducts.length} / ${products.length} ITEMS`}
+            {loading
+              ? "กำลังโหลด..."
+              : `พบสินค้า ${visibleProducts.length} รายการ`}
           </span>
         </div>
 

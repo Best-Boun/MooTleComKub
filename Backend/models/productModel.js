@@ -57,6 +57,12 @@ class ProductModel {
       ram,
       display,
       storage,
+
+      mainboard,
+      power_supply,
+      case_name,
+      cooling,
+
       status,
     } = product;
 
@@ -78,9 +84,15 @@ class ProductModel {
   ram,
   display,
   storage,
-  status
+
+mainboard,
+power_supply,
+case_name,
+cooling,
+
+status
 )
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `,
       [
         category_id,
@@ -97,6 +109,12 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ram,
         display,
         storage,
+
+        mainboard,
+        power_supply,
+        case_name,
+        cooling,
+
         status,
       ],
     );
@@ -121,6 +139,10 @@ VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       ram,
       display,
       storage,
+      mainboard,
+      power_supply,
+      case_name,
+      cooling,
       status,
     } = product;
 
@@ -141,8 +163,14 @@ SET
   gpu = ?,
   ram = ?,
   display = ?,
-  storage = ?,
-  status = ?
+ storage = ?,
+
+mainboard = ?,
+power_supply = ?,
+case_name = ?,
+cooling = ?,
+
+status = ?
 WHERE product_id = ?
       `,
       [
@@ -160,6 +188,12 @@ WHERE product_id = ?
         ram,
         display,
         storage,
+
+        mainboard,
+        power_supply,
+        case_name,
+        cooling,
+
         status,
         id,
       ],
