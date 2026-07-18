@@ -172,7 +172,7 @@ export default function Orders() {
         <div className="tck-empty" style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div className="tck-empty-title">คุณยังไม่เคยสั่งซื้อสินค้า</div>
           <div style={{ marginBottom: 16 }}>เลือกซื้อสินค้าชิ้นแรกของคุณได้เลย</div>
-          <button type="button" className="tck-cta" onClick={() => navigate("/products")}>
+          <button type="button" className="tck-cta" onClick={() => navigate("/")}>
             เลือกซื้อสินค้า →
           </button>
         </div>

@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Homepage from "../pages/Homepage";
 import Login from "../pages/Login";
 import Register from "../pages/Register";
-import ProductsPage from "../pages/Products";
 import ProductDetail from "../pages/ProductDetail";
 import Cart from "../pages/Cart";
 import Checkout from "../pages/Checkout";
@@ -40,15 +39,6 @@ export default function AppRoutes() {
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
-        <Route
-          path="/products"
-          element={
-            <PrivateRoute>
-              <ProductsPage />
-            </PrivateRoute>
-          }
-        />
 
         <Route
           path="/products/:id"

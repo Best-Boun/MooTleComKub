@@ -1,45 +1,52 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import productService from "../services/productService";
-import "../styles/tckTheme.css";
-import cartService from "../services/cartService";
 import { Dropdown } from "react-bootstrap";
+import { FiMenu, FiSearch, FiShoppingCart } from "react-icons/fi";
+import productService from "../services/productService";
+import categoryService from "../services/categoryService";
+import cartService from "../services/cartService";
+import Footer from "../components/layout/Footer";
 
 const API_URL = "http://localhost:5000";
 
-function PortRail() {
-  // Signature motif: a strip of notches echoing a laptop's side I/O ports
-  const notches = [
-    { w: 14, r: 3 },
-    { w: 22, r: 3 },
-    { w: 10, r: 10 },
-    { w: 30, r: 3 },
-    { w: 14, r: 3 },
-    { w: 18, r: 10 },
-    { w: 26, r: 3 },
-    { w: 12, r: 3 },
-  ];
-  return (
-    <div className="tck-portrail" aria-hidden="true">
-      {notches.map((n, i) => (
-        <span
-          key={i}
-          className="tck-notch"
-          style={{ width: n.w, borderRadius: n.r }}
-        />
-      ))}
-    </div>
-  );
-}
+const SORT_OPTIONS = [
+  { value: "newest", label: "ล่าสุด" },
+  { value: "price_asc", label: "ราคา: ต่ำ → สูง" },
+  { value: "price_desc", label: "ราคา: สูง → ต่ำ" },
+  { value: "name_asc", label: "ชื่อ: ก → ฮ" },
+];
 
 export default function Homepage() {
   const navigate = useNavigate();
+
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [addingId, setAddingId] = useState(null);
   const [cartMessage, setCartMessage] = useState("");
+  const [cartCount, setCartCount] = useState(0);
+
+  const [search, setSearch] = useState("");
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [activeCategoryIds, setActiveCategoryIds] = useState([]);
+  const [priceMin, setPriceMin] = useState("");
+  const [priceMax, setPriceMax] = useState("");
+  const [activeBrands, setActiveBrands] = useState([]);
+  const [sortBy, setSortBy] = useState("newest");
+  const [inStockOnly, setInStockOnly] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 12;
+
+  const [openSections, setOpenSections] = useState({
+    category: true,
+    price: true,
+    brand: true,
+  });
+  const toggleSection = (key) => {
+    setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-
   const user = JSON.parse(localStorage.getItem("user"));
 
   const handleLogout = () => {
@@ -51,19 +58,162 @@ export default function Homepage() {
   };
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
-        const res = await productService.getActiveProducts();
-        const allProducts = Array.isArray(res?.data) ? res.data : [];
-        setProducts(allProducts.slice(0, 4));
+        setLoading(true);
+        const [productRes, categoryRes] = await Promise.all([
+          productService.getAllProducts(),
+          categoryService.getAllCategories(),
+        ]);
+
+        setProducts(Array.isArray(productRes?.data) ? productRes.data : []);
+        setCategories(Array.isArray(categoryRes?.data) ? categoryRes.data : []);
       } catch (error) {
         console.error(error);
         setProducts([]);
+        setCategories([]);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchData();
   }, []);
+
+  useEffect(() => {
+    const loadCartCount = async () => {
+      if (!token) return;
+      try {
+        const res = await cartService.getCart();
+        const items = Array.isArray(res?.data?.items)
+          ? res.data.items.filter((item) => item && item.cart_item_id)
+          : [];
+        setCartCount(items.length);
+      } catch (error) {
+        setCartCount(0);
+      }
+    };
+
+    loadCartCount();
+  }, [token]);
+
+  useEffect(() => {
+    setActiveBrands([]);
+  }, [activeCategoryIds]);
+
+  const priceBounds = useMemo(() => {
+    if (products.length === 0) return { min: 0, max: 0 };
+    const prices = products.map((p) => Number(p.price) || 0);
+    return { min: Math.min(...prices), max: Math.max(...prices) };
+  }, [products]);
+
+  const activeCategoryLabel = useMemo(() => {
+    if (activeCategoryIds.length === 0) return "สินค้าทั้งหมด";
+    if (activeCategoryIds.length === 1) {
+      const cat = categories.find(
+        (c) => c.category_id === activeCategoryIds[0],
+      );
+      return cat?.category_name || "สินค้าทั้งหมด";
+    }
+    return `สินค้าที่เลือก (${activeCategoryIds.length} หมวดหมู่)`;
+  }, [activeCategoryIds, categories]);
+
+  const brands = useMemo(() => {
+    const relevant = products.filter(
+      (p) =>
+        activeCategoryIds.length === 0 ||
+        activeCategoryIds.includes(p.category_id),
+    );
+    return [...new Set(relevant.map((p) => p.brand_name).filter(Boolean))].sort();
+  }, [products, activeCategoryIds]);
+
+  const toggleCategory = (categoryId) => {
+    setActiveCategoryIds((prev) =>
+      prev.includes(categoryId)
+        ? prev.filter((id) => id !== categoryId)
+        : [...prev, categoryId],
+    );
+  };
+
+  const toggleBrand = (brandName) => {
+    setActiveBrands((prev) =>
+      prev.includes(brandName)
+        ? prev.filter((b) => b !== brandName)
+        : [...prev, brandName],
+    );
+  };
+
+  const handleClearFilters = () => {
+    setActiveCategoryIds([]);
+    setPriceMin("");
+    setPriceMax("");
+    setActiveBrands([]);
+    setSortBy("newest");
+    setInStockOnly(false);
+    setSearch("");
+  };
+
+  const filteredProducts = useMemo(() => {
+    const q = search.trim().toLowerCase();
+
+    let list = products
+      .filter((p) => (p.status ? p.status === "ACTIVE" : true))
+      .filter(
+        (p) =>
+          activeCategoryIds.length === 0 ||
+          activeCategoryIds.includes(p.category_id),
+      )
+      .filter(
+        (p) => activeBrands.length === 0 || activeBrands.includes(p.brand_name),
+      )
+      .filter((p) => !inStockOnly || Number(p.stock) > 0)
+      .filter((p) => {
+        const price = Number(p.price) || 0;
+        const matchMin = priceMin === "" || price >= Number(priceMin);
+        const matchMax = priceMax === "" || price <= Number(priceMax);
+        return matchMin && matchMax;
+      })
+      .filter((p) => {
+        if (!q) return true;
+        return (
+          (p.product_name || "").toLowerCase().includes(q) ||
+          (p.brand_name || "").toLowerCase().includes(q) ||
+          (p.sku || "").toLowerCase().includes(q)
+        );
+      });
+
+    switch (sortBy) {
+      case "price_asc":
+        list = [...list].sort((a, b) => Number(a.price || 0) - Number(b.price || 0));
+        break;
+      case "price_desc":
+        list = [...list].sort((a, b) => Number(b.price || 0) - Number(a.price || 0));
+        break;
+      case "name_asc":
+        list = [...list].sort((a, b) =>
+          (a.product_name || "").localeCompare(b.product_name || "", "th"),
+        );
+        break;
+      default:
+        list = [...list].sort((a, b) => Number(b.product_id) - Number(a.product_id));
+    }
+
+    return list;
+  }, [products, activeCategoryIds, priceMin, priceMax, activeBrands, sortBy, inStockOnly, search]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeCategoryIds, priceMin, priceMax, activeBrands, sortBy, inStockOnly, search]);
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredProducts.length / productsPerPage),
+  );
+
+  const paginatedProducts = useMemo(() => {
+    const start = (currentPage - 1) * productsPerPage;
+    return filteredProducts.slice(start, start + productsPerPage);
+  }, [filteredProducts, currentPage]);
 
   const handleAddToCart = async (product) => {
     if (!token) {
@@ -76,546 +226,1165 @@ export default function Homepage() {
     try {
       await cartService.addItem(product.product_id, 1);
       setCartMessage(`เพิ่ม "${product.product_name}" ลงตะกร้าแล้ว`);
+      setCartCount((prev) => prev + 1);
     } catch (error) {
       console.error(error);
-      const msg = error?.response?.data?.message || "เพิ่มสินค้าลงตะกร้าไม่สำเร็จ";
+      const msg =
+        error?.response?.data?.message || "เพิ่มสินค้าลงตะกร้าไม่สำเร็จ";
       setCartMessage(msg);
     } finally {
       setAddingId(null);
     }
   };
 
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+  };
+
   return (
-    <div className="tck-home">
+    <div className="tck-home2">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
 
-        .tck-home {
-          --bg: #EEF1F5;
+        .tck-home2 {
+          --page-bg: #F6F7F9;
           --surface: #FFFFFF;
-          --ink: #10131A;
-          --muted: #626C7A;
-          --accent: #2B59FF;
+          --ink: #1C1F26;
+          --muted: #6B7280;
+          --line: #E8E8EC;
+          --accent: #E2574C;
+          --accent-dark: #B8362D;
+          --accent-tint: #FDEDEB;
           --accent-ink: #FFFFFF;
-          --led: #00D084;
-          --line: #D8DEE8;
+          --led: #1F9E75;
 
-          background: var(--bg);
+          background: var(--page-bg);
           color: var(--ink);
           font-family: 'Inter', sans-serif;
           min-height: 100%;
-          padding: 28px 24px 64px;
         }
+        .tck2-mono { font-family: 'IBM Plex Mono', monospace; }
 
-        .tck-mono {
-          font-family: 'IBM Plex Mono', monospace;
+        /* Top utility bar */
+        .tck2-utility {
+          background: var(--ink);
+          color: #D8DAE0;
+          font-size: 12.5px;
         }
-
-        /* Customer Navbar */
-        .tck-nav-wrap {
-          max-width: 1100px;
-          margin: 0 auto 12px;
-        }
-        .tck-nav {
+        .tck2-utility-inner {
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 6px 24px;
           display: flex;
-          align-items: center;
-          gap: 18px;
-          background: var(--surface);
-          border: 1px solid var(--line);
-          border-radius: 12px;
-          padding: 12px 14px;
+          justify-content: flex-end;
+          gap: 20px;
         }
-        .tck-logo {
-          font-family: 'Space Grotesk', sans-serif;
-          font-weight: 700;
-          font-size: 18px;
-          margin-right: 4px;
+        .tck2-utility-inner button {
+          background: none;
+          border: none;
+          color: inherit;
+          font-size: inherit;
           cursor: pointer;
         }
-        .tck-nav-links {
+        .tck2-utility-inner button:hover { color: #fff; }
+
+        /* Main navbar */
+        .tck2-navbar {
+          background: var(--surface);
+          border-bottom: 1px solid var(--line);
+        }
+        .tck2-navbar-inner {
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 14px 24px;
+          display: flex;
+          align-items: center;
+          gap: 20px;
+        }
+        .tck2-hamburger {
+          display: none;
+          background: none;
+          border: 1px solid var(--line);
+          border-radius: 8px;
+          width: 38px;
+          height: 38px;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          font-size: 18px;
+          flex-shrink: 0;
+        }
+        .tck2-logo {
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 700;
+          font-size: 22px;
+          color: var(--ink);
+          background: none;
+          border: none;
+          cursor: pointer;
+          flex-shrink: 0;
+        }
+        .tck2-logo span { color: var(--accent); }
+        .tck2-search {
+          flex: 1;
+          display: flex;
+          max-width: 560px;
+        }
+        .tck2-search input {
+          flex: 1;
+          border: 1px solid var(--line);
+          border-right: none;
+          border-radius: 10px 0 0 10px;
+          padding: 10px 14px;
+          font-size: 14px;
+          outline: none;
+        }
+        .tck2-search input:focus { border-color: var(--accent); }
+        .tck2-search button {
+          border: none;
+          background: var(--accent);
+          color: var(--accent-ink);
+          padding: 0 18px;
+          border-radius: 0 10px 10px 0;
+          cursor: pointer;
+          font-size: 15px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .tck2-search button:hover { background: var(--accent-dark); }
+        .tck2-nav-spacer { margin-left: auto; }
+        .tck2-nav-actions {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+        }
+        .tck2-cart-btn {
+          position: relative;
+          border: 1px solid var(--line);
+          background: transparent;
+          border-radius: 10px;
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          font-size: 18px;
+        }
+        .tck2-cart-btn:hover { border-color: var(--accent); }
+        .tck2-cart-badge {
+          position: absolute;
+          top: -6px;
+          right: -6px;
+          background: var(--accent);
+          color: #fff;
+          font-size: 11px;
+          font-weight: 600;
+          min-width: 18px;
+          height: 18px;
+          border-radius: 9px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0 4px;
+        }
+
+        /* Layout: sidebar + main */
+        .tck2-layout {
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 24px 24px 0;
+          display: grid;
+          grid-template-columns: 260px 1fr;
+          gap: 24px;
+          align-items: start;
+        }
+        @media (max-width: 900px) {
+          .tck2-layout { grid-template-columns: 1fr; }
+          .tck2-sidebar { display: none; }
+          .tck2-sidebar.open { display: block; }
+          .tck2-hamburger { display: flex; }
+          .tck2-search { display: none; }
+        }
+
+        .tck2-sidebar {
+          background: var(--surface);
+          border: 1px solid var(--line);
+          border-radius: 14px;
+          padding: 18px;
+          position: sticky;
+          top: 16px;
+        }
+        .tck2-breadcrumb {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 12px;
+          color: var(--muted);
+          margin-bottom: 14px;
+        }
+        .tck2-breadcrumb button {
+          background: none;
+          border: none;
+          padding: 0;
+          font-size: 12px;
+          color: var(--accent-dark);
+          cursor: pointer;
+        }
+        .tck2-instock-toggle {
+          padding-bottom: 12px;
+          margin-bottom: 12px;
+          border-bottom: 1px solid var(--line);
+        }
+        .tck2-accordion { border-bottom: 1px solid var(--line); }
+        .tck2-accordion:last-of-type { border-bottom: none; }
+        .tck2-accordion-head {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: none;
+          border: none;
+          padding: 12px 2px;
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 600;
+          font-size: 14px;
+          color: var(--ink);
+          cursor: pointer;
+        }
+        .tck2-accordion-head span {
+          font-size: 16px;
+          color: var(--muted);
+        }
+        .tck2-accordion-body {
+          max-height: 220px;
+          overflow-y: auto;
+          padding-bottom: 14px;
+        }
+        .tck2-sidebar-head {
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 600;
+          font-size: 14px;
+          margin-bottom: 12px;
+        }
+        .tck2-cat-item {
           display: flex;
           align-items: center;
           gap: 8px;
-          flex-wrap: wrap;
-        }
-        .tck-nav-link {
-          border: 1px solid transparent;
-          background: transparent;
+          padding: 7px 4px;
+          font-size: 13.5px;
+          cursor: pointer;
+          border-radius: 6px;
           color: var(--ink);
-          font-size: 14px;
-          padding: 7px 10px;
-          border-radius: 8px;
+        }
+        .tck2-cat-item:hover { background: var(--accent-tint); }
+        .tck2-cat-item.active { color: var(--accent-dark); font-weight: 600; }
+        .tck2-cat-item input { accent-color: var(--accent); }
+        .tck2-sidebar-divider {
+          border: none;
+          border-top: 1px solid var(--line);
+          margin: 16px 0;
+        }
+        .tck2-range-slider {
+          position: relative;
+          height: 32px;
+          margin-bottom: 10px;
+        }
+        .tck2-range-slider input[type="range"] {
+          position: absolute;
+          top: 12px;
+          left: 0;
+          width: 100%;
+          margin: 0;
+          background: none;
+          pointer-events: none;
+          -webkit-appearance: none;
+          appearance: none;
+        }
+        .tck2-range-slider input[type="range"]::-webkit-slider-thumb {
+          pointer-events: auto;
+          -webkit-appearance: none;
+          appearance: none;
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          background: var(--accent);
+          border: 2px solid #fff;
+          box-shadow: 0 0 0 1px var(--accent);
           cursor: pointer;
         }
-        .tck-nav-link:hover {
-          border-color: var(--line);
-          background: #F6F8FB;
+        .tck2-range-slider input[type="range"]::-moz-range-thumb {
+          pointer-events: auto;
+          width: 16px;
+          height: 16px;
+          border-radius: 50%;
+          background: var(--accent);
+          border: 2px solid #fff;
+          box-shadow: 0 0 0 1px var(--accent);
+          cursor: pointer;
         }
-        .tck-nav-spacer {
-          margin-left: auto;
+        .tck2-range-slider input[type="range"]::-webkit-slider-runnable-track {
+          height: 4px;
+          background: transparent;
         }
-
-        /* Topbar */
-        .tck-topbar {
+        .tck2-range-track-base {
+          position: absolute;
+          top: 14px;
+          left: 0;
+          right: 0;
+          height: 4px;
+          background: var(--line);
+          border-radius: 2px;
+        }
+        .tck2-range-track {
+          position: absolute;
+          top: 14px;
+          height: 4px;
+          background: var(--accent);
+          border-radius: 2px;
+        }
+        .tck2-price-row {
           display: flex;
-          justify-content: flex-end;
-          max-width: 1100px;
-          margin: 0 auto 8px;
-        }
-        .tck-logout {
-          display: inline-flex;
           align-items: center;
-          gap: 6px;
+          gap: 8px;
+        }
+        .tck2-price-row input {
+          width: 100%;
+          border: 1px solid var(--line);
+          border-radius: 8px;
+          padding: 7px 8px;
+          font-size: 13px;
+        }
+        .tck2-select {
+          width: 100%;
+          border: 1px solid var(--line);
+          border-radius: 8px;
+          padding: 8px;
+          font-size: 13px;
+          background: #fff;
+          color: var(--ink);
+          cursor: pointer;
+        }
+        .tck2-price-hint {
+          font-size: 11.5px;
+          color: var(--muted);
+          margin-top: 6px;
+        }
+        .tck2-clear-filter {
+          margin-top: 14px;
+          width: 100%;
           background: transparent;
           border: 1px solid var(--line);
-          color: var(--muted);
-          font-family: 'IBM Plex Mono', monospace;
-          font-size: 12px;
-          letter-spacing: 0.03em;
-          padding: 7px 12px;
           border-radius: 8px;
+          padding: 8px;
+          font-size: 12.5px;
+          color: var(--muted);
           cursor: pointer;
-          transition: border-color 0.15s ease, color 0.15s ease;
         }
-        .tck-logout:hover { border-color: #C0392B; color: #C0392B; }
-        .tck-logout:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        .tck2-clear-filter:hover { border-color: var(--accent); color: var(--accent-dark); }
 
         /* Hero */
-        .tck-hero {
-          max-width: 1100px;
-          margin: 8px auto 0;
-          background: var(--surface);
-          border: 1px solid var(--line);
-          border-radius: 20px;
-          padding: 48px 44px 32px;
+        .tck2-hero {
+          background: linear-gradient(120deg, var(--accent) 0%, var(--accent-dark) 100%);
+          color: #fff;
+          border-radius: 18px;
+          padding: 40px 40px 32px;
+          position: relative;
+          overflow: hidden;
         }
-        .tck-eyebrow {
+        .tck2-hero-eyebrow {
           font-family: 'IBM Plex Mono', monospace;
           font-size: 12px;
           letter-spacing: 0.14em;
           text-transform: uppercase;
-          color: var(--accent);
+          opacity: 0.85;
           margin-bottom: 10px;
         }
-        .tck-title {
+        .tck2-hero-title {
           font-family: 'Space Grotesk', sans-serif;
           font-weight: 700;
-          font-size: clamp(32px, 5vw, 52px);
-          line-height: 1.05;
+          font-size: clamp(26px, 4vw, 40px);
+          line-height: 1.1;
           margin: 0 0 10px;
-          letter-spacing: -0.01em;
         }
-        .tck-sub {
-          color: var(--muted);
-          font-size: 16px;
-          margin: 0 0 26px;
+        .tck2-hero-sub {
+          font-size: 15px;
+          opacity: 0.92;
+          margin: 0 0 22px;
+          max-width: 460px;
         }
-        .tck-cta {
+        .tck2-hero-cta {
           display: inline-flex;
           align-items: center;
           gap: 8px;
-          background: var(--ink);
-          color: #fff;
+          background: #fff;
+          color: var(--accent-dark);
           border: none;
           font-family: 'Space Grotesk', sans-serif;
           font-weight: 600;
-          font-size: 15px;
-          padding: 13px 22px;
+          font-size: 14.5px;
+          padding: 12px 20px;
           border-radius: 10px;
           cursor: pointer;
-          transition: transform 0.15s ease, background 0.15s ease;
         }
-        .tck-cta:hover { background: var(--accent); transform: translateY(-1px); }
-        .tck-cta:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+        .tck2-hero-cta:hover { background: #FFF1EF; }
 
-        .tck-portrail {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          margin: 30px 0 6px;
-        }
-        .tck-notch {
-          height: 8px;
-          background: var(--line);
-        }
-
-        /* Quick spec badges under hero */
-        .tck-badges {
+        .tck2-badges {
           display: flex;
           flex-wrap: wrap;
           gap: 10px 24px;
-          margin-top: 16px;
+          margin-top: 22px;
         }
-        .tck-badge {
+        .tck2-badge {
           display: flex;
           align-items: center;
           gap: 7px;
           font-family: 'IBM Plex Mono', monospace;
-          font-size: 12.5px;
-          color: var(--muted);
+          font-size: 12px;
         }
-        .tck-dot {
-          width: 7px;
-          height: 7px;
+        .tck2-dot {
+          width: 6px;
+          height: 6px;
           border-radius: 50%;
-          background: var(--led);
-          box-shadow: 0 0 0 3px rgba(0,208,132,0.15);
+          background: #fff;
         }
 
         /* Sections */
-        .tck-section {
-          max-width: 1100px;
-          margin: 44px auto 0;
-        }
-        .tck-section-head {
+        .tck2-section { margin: 36px 0 0; }
+        .tck2-section-head {
           display: flex;
           align-items: baseline;
           justify-content: space-between;
-          margin-bottom: 18px;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 16px;
         }
-        .tck-section-title {
+        .tck2-section-title {
           font-family: 'Space Grotesk', sans-serif;
           font-weight: 600;
-          font-size: 22px;
+          font-size: 20px;
           margin: 0;
         }
-        .tck-section-tag {
+        .tck2-section-tag {
           font-family: 'IBM Plex Mono', monospace;
           font-size: 12px;
           color: var(--muted);
-          letter-spacing: 0.05em;
+        }
+        .tck2-section-right {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          flex-wrap: wrap;
+        }
+        .tck2-sort-select {
+          border: 1px solid var(--line);
+          border-radius: 8px;
+          padding: 7px 10px;
+          font-size: 13px;
+          background: #fff;
+          color: var(--ink);
+          cursor: pointer;
         }
 
-        /* Product grid */
-        .tck-grid {
+        .tck2-grid {
           display: grid;
           grid-template-columns: repeat(4, 1fr);
-          gap: 18px;
+          gap: 16px;
         }
-        @media (max-width: 900px) {
-          .tck-grid { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 520px) {
-          .tck-grid { grid-template-columns: 1fr; }
-          .tck-hero { padding: 36px 22px 26px; }
+        @media (max-width: 700px) {
+          .tck2-grid { grid-template-columns: repeat(2, 1fr); }
         }
 
-        .tck-card {
+        .tck2-card {
           background: var(--surface);
           border: 1px solid var(--line);
-          border-radius: 16px;
+          border-radius: 14px;
           overflow: hidden;
           display: flex;
           flex-direction: column;
           transition: box-shadow 0.15s ease, transform 0.15s ease;
         }
-        .tck-card:hover {
-          box-shadow: 0 10px 24px rgba(16,19,26,0.08);
+        .tck2-card:hover {
+          box-shadow: 0 10px 22px rgba(0,0,0,0.06);
           transform: translateY(-2px);
         }
-        .tck-card-media {
+        .tck2-card-media {
           position: relative;
-          height: 170px;
-          background: #F4F6F9;
+          height: 150px;
+          background: #F4F4F6;
         }
-        .tck-card-media img {
+        .tck2-card-media img {
           width: 100%;
           height: 100%;
           object-fit: cover;
           display: block;
         }
-        .tck-price-tag {
+        .tck2-brand-tag {
           position: absolute;
-          top: 10px;
-          right: 10px;
-          background: var(--ink);
+          top: 8px;
+          left: 8px;
+          background: rgba(28,31,38,0.75);
           color: #fff;
-          font-family: 'IBM Plex Mono', monospace;
-          font-size: 12.5px;
+          font-size: 10.5px;
           font-weight: 600;
-          padding: 5px 9px;
-          border-radius: 7px;
-          transform: rotate(-2deg);
+          padding: 3px 8px;
+          border-radius: 6px;
         }
-        .tck-card-body {
-          padding: 16px 16px 18px;
+        .tck2-stock-tag {
+          position: absolute;
+          top: 8px;
+          right: 8px;
+          font-size: 10.5px;
+          font-weight: 600;
+          padding: 3px 8px;
+          border-radius: 20px;
+          background: rgba(31,158,117,0.12);
+          color: #12734F;
+        }
+        .tck2-stock-tag.out { background: rgba(226,87,76,0.12); color: var(--accent-dark); }
+        .tck2-card-body {
+          padding: 12px 14px 14px;
           display: flex;
           flex-direction: column;
           flex: 1;
         }
-        .tck-card-title {
-          font-family: 'Space Grotesk', sans-serif;
-          font-weight: 600;
-          font-size: 15.5px;
-          margin: 0 0 14px;
-          line-height: 1.3;
+        .tck2-card-eyebrow {
+          font-size: 11px;
+          color: var(--muted);
+          margin-bottom: 4px;
         }
-        .tck-card-link {
+        .tck2-card-title {
+          font-size: 14px;
+          font-weight: 600;
+          margin: 0 0 8px;
+          line-height: 1.3;
+          min-height: 36px;
+        }
+        .tck2-card-price {
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 700;
+          font-size: 17px;
+          color: var(--accent-dark);
+          margin-bottom: 10px;
+        }
+        .tck2-card-actions {
           margin-top: auto;
-          display: inline-flex;
-          align-items: center;
+          display: flex;
           gap: 6px;
+        }
+        .tck2-card-link {
+          flex: 1;
           background: transparent;
           border: 1px solid var(--line);
           color: var(--ink);
-          font-family: 'Inter', sans-serif;
-          font-weight: 500;
-          font-size: 13.5px;
-          padding: 9px 12px;
+          font-size: 12.5px;
+          padding: 8px 6px;
           border-radius: 8px;
           cursor: pointer;
-          transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
         }
-        .tck-card-link:hover {
+        .tck2-card-link:hover { border-color: var(--accent); color: var(--accent-dark); }
+        .tck2-add-cart {
+          flex: 1;
+          background: var(--accent);
+          border: none;
+          color: #fff;
+          font-size: 12.5px;
+          font-weight: 600;
+          padding: 8px 6px;
+          border-radius: 8px;
+          cursor: pointer;
+        }
+        .tck2-add-cart:hover { background: var(--accent-dark); }
+        .tck2-add-cart:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .tck2-empty {
+          background: var(--surface);
+          border: 1px dashed var(--line);
+          border-radius: 14px;
+          padding: 40px 20px;
+          text-align: center;
+          color: var(--muted);
+          grid-column: 1 / -1;
+        }
+
+        .tck2-pagination {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 6px;
+          margin-top: 22px;
+        }
+        .tck2-pagination button {
+          border: 1px solid var(--line);
+          background: var(--surface);
+          color: var(--ink);
+          font-size: 13px;
+          padding: 8px 12px;
+          border-radius: 8px;
+          cursor: pointer;
+        }
+        .tck2-pagination button:hover { border-color: var(--accent); color: var(--accent-dark); }
+        .tck2-pagination button.active {
           background: var(--accent);
           border-color: var(--accent);
           color: #fff;
         }
-        .tck-card-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+        .tck2-pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
 
-        /* Why choose - spec sheet list */
-        .tck-spec-list {
+        .tck2-cart-msg {
+          max-width: 1280px;
+          margin: 12px auto 0;
+          padding: 0 24px;
+        }
+        .tck2-cart-msg span {
+          display: inline-block;
+          background: var(--accent-tint);
+          color: var(--accent-dark);
+          font-size: 13px;
+          padding: 8px 14px;
+          border-radius: 8px;
+        }
+
+        /* Why choose */
+        .tck2-spec-list {
           background: var(--surface);
           border: 1px solid var(--line);
-          border-radius: 16px;
-          padding: 6px 22px;
+          border-radius: 14px;
+          padding: 4px 20px;
         }
-        .tck-spec-row {
+        .tck2-spec-row {
           display: flex;
           align-items: center;
           gap: 14px;
-          padding: 16px 0;
+          padding: 14px 0;
         }
-        .tck-spec-row + .tck-spec-row {
-          border-top: 1px solid var(--line);
-        }
-        .tck-spec-mark {
+        .tck2-spec-row + .tck2-spec-row { border-top: 1px solid var(--line); }
+        .tck2-spec-mark {
           font-family: 'IBM Plex Mono', monospace;
           font-size: 11px;
-          color: var(--accent);
+          color: var(--accent-dark);
           border: 1px solid var(--line);
           border-radius: 6px;
           padding: 3px 6px;
           flex-shrink: 0;
         }
-        .tck-spec-text {
-          font-size: 14.5px;
-          color: var(--ink);
+        .tck2-spec-text { font-size: 14px; }
+        .tck2-spec-text b { font-weight: 600; }
+
+        /* Footer */
+        .tck-footer { margin-top: 48px; background: var(--surface); border-top: 1px solid var(--line); }
+        .tck-footer-perks {
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 22px 24px;
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 16px;
+          border-bottom: 1px solid var(--line);
         }
-        .tck-spec-text b { font-weight: 600; }
+        @media (max-width: 800px) { .tck-footer-perks { grid-template-columns: repeat(2, 1fr); } }
+        .tck-perk { display: flex; align-items: center; gap: 10px; }
+        .tck-perk-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--accent-dark);
+          flex-shrink: 0;
+        }
+        .tck-perk-title { font-size: 13px; font-weight: 600; }
+        .tck-perk-sub { font-size: 11.5px; color: var(--muted); }
+        .tck-footer-main {
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 28px 24px;
+          display: grid;
+          grid-template-columns: 1.4fr 1fr 1fr 1fr;
+          gap: 24px;
+        }
+        @media (max-width: 800px) { .tck-footer-main { grid-template-columns: 1fr 1fr; } }
+        .tck-footer-logo {
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 700;
+          font-size: 18px;
+          color: var(--accent-dark);
+          margin-bottom: 8px;
+        }
+        .tck-footer-brand p { font-size: 13px; color: var(--muted); }
+        .tck-footer-head { font-size: 13px; font-weight: 600; margin-bottom: 10px; }
+        .tck-footer-col a {
+          display: block;
+          font-size: 13px;
+          color: var(--muted);
+          text-decoration: none;
+          margin-bottom: 8px;
+        }
+        .tck-footer-col a:hover { color: var(--accent-dark); }
+        .tck-footer-social { display: flex; gap: 10px; }
+        .tck-footer-social span {
+          border: 1px solid var(--line);
+          border-radius: 8px;
+          padding: 5px 10px;
+          font-size: 11.5px;
+          color: var(--muted);
+        }
+        .tck-footer-bottom {
+          text-align: center;
+          font-size: 12px;
+          color: var(--muted);
+          padding: 14px 24px;
+          border-top: 1px solid var(--line);
+        }
 
         @media (prefers-reduced-motion: reduce) {
-          .tck-cta, .tck-card, .tck-card-link { transition: none; }
+          .tck2-card, .tck2-hero-cta, .tck2-add-cart { transition: none; }
         }
       `}</style>
 
-      {token && (
-        <div className="tck-nav-wrap">
-          <div className="tck-nav">
-            <button
-              type="button"
-              className="tck-logo tck-nav-link"
-              onClick={() => navigate("/")}
-            >
-              TleComKub
+      <div className="tck2-utility">
+        <div className="tck2-utility-inner">
+          <span>ส่งฟรีทั่วไทยเมื่อช้อปครบ 2,000.-</span>
+          <button type="button" onClick={() => navigate("/orders")}>
+            ติดตามคำสั่งซื้อ
+          </button>
+        </div>
+      </div>
+
+      <div className="tck2-navbar">
+        <div className="tck2-navbar-inner">
+          <button
+            type="button"
+            className="tck2-hamburger"
+            onClick={() => setMobileNavOpen((prev) => !prev)}
+            aria-label="เปิดเมนูหมวดหมู่"
+          >
+            <FiMenu size={18} />
+          </button>
+
+          <button
+            type="button"
+            className="tck2-logo"
+            onClick={() => navigate("/")}
+          >
+            Tle<span>Com</span>Kub
+          </button>
+
+          <form className="tck2-search" onSubmit={handleSearchSubmit}>
+            <input
+              type="text"
+              placeholder="ค้นหาสินค้าที่ต้องการ..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <button type="submit" aria-label="ค้นหา">
+              <FiSearch size={17} />
             </button>
+          </form>
 
-            <div className="tck-nav-links">
-              <button
-                type="button"
-                className="tck-nav-link"
-                onClick={() => navigate("/")}
-              >
-                Home
-              </button>
-              <button
-                type="button"
-                className="tck-nav-link"
-                onClick={() => navigate("/products")}
-              >
-                Products
-              </button>
-              <button
-                type="button"
-                className="tck-nav-link"
-                onClick={() => navigate("/cart")}
-              >
-                Cart
-              </button>
-              <button
-                type="button"
-                className="tck-nav-link"
-                onClick={() => navigate("/orders")}
-              >
-                Orders
-              </button>
-             
-              <button
-                type="button"
-                className="tck-nav-link"
-                onClick={() => navigate("/my-account")}
-              >
-                My Account
-              </button>
-            </div>
+          <div className="tck2-nav-spacer" />
 
-            <div className="tck-nav-spacer" />
-
+          <div className="tck2-nav-actions">
             <Dropdown align="end">
-              <Dropdown.Toggle variant="light" className="border-0 bg-white">
-                {user?.first_name || "Account"}
+              <Dropdown.Toggle variant="light" className="border-0 bg-transparent">
+                {user?.first_name || "บัญชีของฉัน"}
               </Dropdown.Toggle>
-
               <Dropdown.Menu>
                 <Dropdown.Item onClick={() => navigate("/my-account")}>
-                  My Account
+                  บัญชีของฉัน
                 </Dropdown.Item>
-
+                <Dropdown.Item onClick={() => navigate("/orders")}>
+                  คำสั่งซื้อของฉัน
+                </Dropdown.Item>
                 {(user?.role_id === 2 || user?.role_id === 3) && (
                   <Dropdown.Item onClick={() => navigate("/admin/dashboard")}>
                     Admin Console
                   </Dropdown.Item>
                 )}
-
                 <Dropdown.Divider />
-
                 <Dropdown.Item onClick={handleLogout} className="text-danger">
-                  Logout
+                  ออกจากระบบ
                 </Dropdown.Item>
               </Dropdown.Menu>
             </Dropdown>
+
+            <button
+              type="button"
+              className="tck2-cart-btn"
+              onClick={() => navigate("/cart")}
+              aria-label="ตะกร้าสินค้า"
+            >
+              <FiShoppingCart size={18} />
+              {cartCount > 0 && (
+                <span className="tck2-cart-badge">{cartCount}</span>
+              )}
+            </button>
           </div>
+        </div>
+      </div>
+
+      {cartMessage && (
+        <div className="tck2-cart-msg">
+          <span>{cartMessage}</span>
         </div>
       )}
 
-      <section className="tck-hero">
-        <div className="tck-eyebrow">
-          TLECOMKUB / COMPUTER SETS &amp; NOTEBOOKS
-        </div>
-        <h1 className="tck-title">
-          ทุกสเปกที่ใช่
-          <br />
-          ในราคาที่คุ้ม
-        </h1>
-        <p className="tck-sub">
-          คอมพิวเตอร์ตั้งโต๊ะและโน้ตบุ๊กของแท้ พร้อมประกันศูนย์
-        </p>
-        <button
-          type="button"
-          className="tck-cta"
-          onClick={() => navigate("/products")}
-        >
-          เลือกซื้อสินค้า →
-        </button>
+      <div className="tck2-layout">
+        <aside className={`tck2-sidebar ${mobileNavOpen ? "open" : ""}`}>
+          <div className="tck2-breadcrumb">
+            <button type="button" onClick={() => navigate("/")}>
+              หน้าหลัก
+            </button>
+            <span>›</span>
+            <span>{activeCategoryLabel}</span>
+          </div>
 
-        <PortRail />
+          <label className="tck2-cat-item tck2-instock-toggle">
+            <input
+              type="checkbox"
+              checked={inStockOnly}
+              onChange={(e) => setInStockOnly(e.target.checked)}
+            />
+            แสดงสินค้าพร้อมขาย
+          </label>
 
-        <div className="tck-badges">
-          <span className="tck-badge">
-            <span className="tck-dot" />
-            ของแท้ 100%
-          </span>
-          <span className="tck-badge">
-            <span className="tck-dot" />
-            ประกันศูนย์
-          </span>
-          <span className="tck-badge">
-            <span className="tck-dot" />
-            ชำระเงินปลอดภัย
-          </span>
-          <span className="tck-badge">
-            <span className="tck-dot" />
-            จัดส่งไว
-          </span>
-        </div>
-      </section>
+          <div className="tck2-accordion">
+            <button
+              type="button"
+              className="tck2-accordion-head"
+              onClick={() => toggleSection("category")}
+            >
+              หมวดหมู่สินค้า
+              <span>{openSections.category ? "−" : "+"}</span>
+            </button>
 
-      <section className="tck-section">
-        <div className="tck-section-head">
-          <h2 className="tck-section-title">สินค้าแนะนำ</h2>
-          <span className="tck-section-tag tck-mono">
-            FEATURED — {products.length} ITEMS
-          </span>
-        </div>
+            {openSections.category && (
+              <div className="tck2-accordion-body">
+                <label className="tck2-cat-item">
+                  <input
+                    type="checkbox"
+                    checked={activeCategoryIds.length === 0}
+                    onChange={() => setActiveCategoryIds([])}
+                  />
+                  สินค้าทั้งหมด
+                </label>
 
-        <div className="tck-grid">
-          {products.map((product) => (
-            <div className="tck-card" key={product.product_id}>
-              <div className="tck-card-media">
-                <img
-                  src={
-                    product.image
-                      ? `${API_URL}${product.image}`
-                      : "https://placehold.co/300x200?text=No+Image"
-                  }
-                  alt={product.product_name}
-                />
-                <span className="tck-price-tag">
-                  ฿{Number(product.price || 0).toLocaleString()}
-                </span>
+                {categories.map((c) => (
+                  <label
+                    key={c.category_id}
+                    className={`tck2-cat-item ${
+                      activeCategoryIds.includes(c.category_id) ? "active" : ""
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={activeCategoryIds.includes(c.category_id)}
+                      onChange={() => toggleCategory(c.category_id)}
+                    />
+                    {c.category_name}
+                  </label>
+                ))}
               </div>
-              <div className="tck-card-body">
-                <h3 className="tck-card-title">{product.product_name}</h3>
+            )}
+          </div>
 
-                <div className="tck-card-actions">
-                  <button
-                    type="button"
-                    className="tck-card-link"
-                    onClick={() => navigate(`/products/${product.product_id}`)}
-                  >
-                    ดูรายละเอียด →
-                  </button>
+          <div className="tck2-accordion">
+            <button
+              type="button"
+              className="tck2-accordion-head"
+              onClick={() => toggleSection("price")}
+            >
+              ช่วงราคา
+              <span>{openSections.price ? "−" : "+"}</span>
+            </button>
 
-                  <button
-                    type="button"
-                    className="tck-add-cart"
-                    disabled={addingId === product.product_id}
-                    onClick={() => handleAddToCart(product)}
-                  >
-                    {addingId === product.product_id
-                      ? "กำลังเพิ่ม..."
-                      : "หยิบใส่ตะกร้า"}
-                  </button>
+            {openSections.price && (
+              <div className="tck2-accordion-body">
+                <div className="tck2-range-slider">
+                  <div className="tck2-range-track-base" />
+                  <div
+                    className="tck2-range-track"
+                    style={{
+                      left: `${
+                        priceBounds.max > 0
+                          ? ((Number(priceMin || priceBounds.min) -
+                              priceBounds.min) /
+                              (priceBounds.max - priceBounds.min || 1)) *
+                            100
+                          : 0
+                      }%`,
+                      right: `${
+                        priceBounds.max > 0
+                          ? 100 -
+                            ((Number(priceMax || priceBounds.max) -
+                              priceBounds.min) /
+                              (priceBounds.max - priceBounds.min || 1)) *
+                              100
+                          : 0
+                      }%`,
+                    }}
+                  />
+                  <input
+                    type="range"
+                    min={priceBounds.min}
+                    max={priceBounds.max}
+                    value={priceMin === "" ? priceBounds.min : priceMin}
+                    onChange={(e) => {
+                      const val = Math.min(
+                        Number(e.target.value),
+                        priceMax === "" ? priceBounds.max : Number(priceMax),
+                      );
+                      setPriceMin(val);
+                    }}
+                  />
+                  <input
+                    type="range"
+                    min={priceBounds.min}
+                    max={priceBounds.max}
+                    value={priceMax === "" ? priceBounds.max : priceMax}
+                    onChange={(e) => {
+                      const val = Math.max(
+                        Number(e.target.value),
+                        priceMin === "" ? priceBounds.min : Number(priceMin),
+                      );
+                      setPriceMax(val);
+                    }}
+                  />
+                </div>
+
+                <div className="tck2-price-row">
+                  <input
+                    type="number"
+                    placeholder="ต่ำสุด"
+                    value={priceMin}
+                    onChange={(e) => setPriceMin(e.target.value)}
+                  />
+                  <span>-</span>
+                  <input
+                    type="number"
+                    placeholder="สูงสุด"
+                    value={priceMax}
+                    onChange={(e) => setPriceMax(e.target.value)}
+                  />
+                </div>
+                <div className="tck2-price-hint">
+                  ฿{priceBounds.min.toLocaleString()} - ฿
+                  {priceBounds.max.toLocaleString()}
                 </div>
               </div>
+            )}
+          </div>
+
+          <div className="tck2-accordion">
+            <button
+              type="button"
+              className="tck2-accordion-head"
+              onClick={() => toggleSection("brand")}
+            >
+              แบรนด์
+              <span>{openSections.brand ? "−" : "+"}</span>
+            </button>
+
+            {openSections.brand && (
+              <div className="tck2-accordion-body">
+                {brands.length === 0 && (
+                  <div className="tck2-price-hint">ไม่มีแบรนด์ในหมวดนี้</div>
+                )}
+                {brands.map((b) => (
+                  <label key={b} className="tck2-cat-item">
+                    <input
+                      type="checkbox"
+                      checked={activeBrands.includes(b)}
+                      onChange={() => toggleBrand(b)}
+                    />
+                    {b}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {(activeCategoryIds.length > 0 ||
+            priceMin ||
+            priceMax ||
+            activeBrands.length > 0 ||
+            sortBy !== "newest" ||
+            inStockOnly ||
+            search) && (
+            <button
+              type="button"
+              className="tck2-clear-filter"
+              onClick={handleClearFilters}
+            >
+              ลบการกรองสินค้าที่เลือก
+            </button>
+          )}
+        </aside>
+
+        <main>
+          <section className="tck2-hero">
+            <div className="tck2-hero-eyebrow">
+              TLECOMKUB / COMPUTER SETS &amp; NOTEBOOKS
             </div>
-          ))}
-        </div>
-      </section>
+            <h1 className="tck2-hero-title">
+              ทุกสินค้าที่ใช่ ประกันใจได้ 100%
 
-      <section className="tck-section">
-        <div className="tck-section-head">
-          <h2 className="tck-section-title">ทำไมต้อง TleComKub</h2>
-        </div>
+            </h1>
+            <p className="tck2-hero-sub">
+              คอมพิวเตอร์ตั้งโต๊ะและโน้ตบุ๊กของแท้ พร้อมประกันศูนย์
+            </p>
 
-        <div className="tck-spec-list">
-          <div className="tck-spec-row">
-            <span className="tck-spec-mark tck-mono">GEN</span>
-            <span className="tck-spec-text">
-              <b>สินค้าของแท้</b> —
-              นำเข้าและจัดจำหน่ายโดยตัวแทนที่ได้รับการรับรอง
-            </span>
-          </div>
-          <div className="tck-spec-row">
-            <span className="tck-spec-mark tck-mono">WTY</span>
-            <span className="tck-spec-text">
-              <b>ประกันศูนย์</b> — รับประกันสินค้าตามมาตรฐานผู้ผลิตทุกชิ้น
-            </span>
-          </div>
-          <div className="tck-spec-row">
-            <span className="tck-spec-mark tck-mono">SEC</span>
-            <span className="tck-spec-text">
-              <b>ชำระเงินปลอดภัย</b> — ระบบชำระเงินเข้ารหัสมาตรฐานสากล
-            </span>
-          </div>
-          <div className="tck-spec-row">
-            <span className="tck-spec-mark tck-mono">SHP</span>
-            <span className="tck-spec-text">
-              <b>จัดส่งรวดเร็ว</b> — พร้อมติดตามสถานะพัสดุแบบเรียลไทม์
-            </span>
-          </div>
-        </div>
-      </section>
+            <div className="tck2-badges">
+              <span className="tck2-badge">
+                <span className="tck2-dot" /> ของแท้ 100%
+              </span>
+              <span className="tck2-badge">
+                <span className="tck2-dot" /> ประกันศูนย์
+              </span>
+              <span className="tck2-badge">
+                <span className="tck2-dot" /> ชำระเงินปลอดภัย
+              </span>
+              <span className="tck2-badge">
+                <span className="tck2-dot" /> จัดส่งไว
+              </span>
+            </div>
+          </section>
+
+          <section className="tck2-section">
+            <div className="tck2-section-head">
+              <h2 className="tck2-section-title">{activeCategoryLabel}</h2>
+              <div className="tck2-section-right">
+                <span className="tck2-section-tag tck2-mono">
+                  พบสินค้า {filteredProducts.length} รายการ
+                </span>
+                <select
+                  className="tck2-sort-select"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                >
+                  {SORT_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      เรียงตาม: {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="tck2-grid">
+              {loading && (
+                <div className="tck2-empty">กำลังโหลดสินค้า...</div>
+              )}
+
+              {!loading && filteredProducts.length === 0 && (
+                <div className="tck2-empty">ไม่พบสินค้าตามตัวกรองที่เลือก</div>
+              )}
+
+              {!loading &&
+                paginatedProducts.map((product) => (
+                  <div className="tck2-card" key={product.product_id}>
+                    <div className="tck2-card-media">
+                      <img
+                        src={
+                          product.image
+                            ? `${API_URL}${product.image}`
+                            : "https://placehold.co/300x200?text=No+Image"
+                        }
+                        alt={product.product_name}
+                      />
+                      {product.brand_name && (
+                        <span className="tck2-brand-tag">
+                          {product.brand_name}
+                        </span>
+                      )}
+                      <span
+                        className={`tck2-stock-tag${
+                          Number(product.stock) > 0 ? "" : " out"
+                        }`}
+                      >
+                        {Number(product.stock) > 0
+                          ? `เหลือ ${product.stock}`
+                          : "สินค้าหมด"}
+                      </span>
+                    </div>
+                    <div className="tck2-card-body">
+                      <div className="tck2-card-eyebrow">
+                        {product.category_name || "ไม่ระบุหมวดหมู่"}
+                      </div>
+                      <h3 className="tck2-card-title">
+                        {product.product_name}
+                      </h3>
+                      <div className="tck2-card-price">
+                        ฿{Number(product.price || 0).toLocaleString()}
+                      </div>
+
+                      <div className="tck2-card-actions">
+                        <button
+                          type="button"
+                          className="tck2-card-link"
+                          onClick={() =>
+                            navigate(`/products/${product.product_id}`)
+                          }
+                        >
+                          ดูรายละเอียด
+                        </button>
+                        <button
+                          type="button"
+                          className="tck2-add-cart"
+                          disabled={
+                            addingId === product.product_id ||
+                            Number(product.stock) <= 0
+                          }
+                          onClick={() => handleAddToCart(product)}
+                        >
+                          {addingId === product.product_id
+                            ? "กำลังเพิ่ม..."
+                            : "หยิบใส่ตะกร้า"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+            </div>
+
+            {!loading && filteredProducts.length > 0 && totalPages > 1 && (
+              <div className="tck2-pagination">
+                <button
+                  type="button"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                >
+                  ← ก่อนหน้า
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                  (page) => (
+                    <button
+                      key={page}
+                      type="button"
+                      className={page === currentPage ? "active" : ""}
+                      onClick={() => setCurrentPage(page)}
+                    >
+                      {page}
+                    </button>
+                  ),
+                )}
+
+                <button
+                  type="button"
+                  disabled={currentPage === totalPages}
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                >
+                  ถัดไป →
+                </button>
+              </div>
+            )}
+          </section>
+        </main>
+      </div>
+
+      <Footer />
     </div>
   );
 }

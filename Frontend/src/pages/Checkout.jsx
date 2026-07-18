@@ -399,7 +399,7 @@ export default function Checkout() {
         <div className="tck-empty" style={{ maxWidth: 1100, margin: "0 auto" }}>
           <div className="tck-empty-title">ตะกร้าของคุณว่างอยู่</div>
           <div style={{ marginBottom: 16 }}>เพิ่มสินค้าลงตะกร้าก่อนดำเนินการชำระเงิน</div>
-          <button type="button" className="tck-cta" onClick={() => navigate("/products")}>
+          <button type="button" className="tck-cta" onClick={() => navigate("/")}>
             เลือกซื้อสินค้า →
           </button>
         </div>

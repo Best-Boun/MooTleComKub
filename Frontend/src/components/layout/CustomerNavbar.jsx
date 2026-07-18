@@ -33,13 +33,6 @@ export default function CustomerNavbar() {
             Home
           </button>
 
-          <button
-            className="tck-nav-link"
-            onClick={() => navigate("/products")}
-          >
-            Products
-          </button>
-
           <button className="tck-nav-link" onClick={() => navigate("/cart")}>
             Cart
           </button>
