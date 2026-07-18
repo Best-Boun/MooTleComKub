@@ -16,6 +16,7 @@ const customerRoutes = require("./routes/customerRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
 const brandRoutes = require("./routes/brandRoutes");
+const specTemplateRoutes = require("./routes/specTemplateRoutes");
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use("/api/roles", roleRoutes);
 app.use("/api/system", systemRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/brands", brandRoutes);
+app.use("/api/spec-templates", specTemplateRoutes);
 app.use("/api/addresses", addressRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);

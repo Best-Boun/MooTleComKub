@@ -147,10 +147,26 @@ const fetchCategories = async () => {
   };
 
   // แก้ไขสินค้า
-  const handleEdit = (product) => {
+  const handleEdit = async (product) => {
+    try {
+      const res = await productService.getProductById(product.product_id);
+      setMode("edit");
+      setSelectedProduct(res?.data || product);
+      setShowModal(true);
+    } catch (error) {
+      console.error(error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Failed to load product details",
+      });
+    }
+  };
+
+  // เจอ SKU ที่มีอยู่แล้วตอน Add Product -> สลับไปโหมด Edit สินค้าตัวนั้นแทน
+  const handleSkuMatch = (matchedProduct) => {
     setMode("edit");
-    setSelectedProduct(product);
-    setShowModal(true);
+    setSelectedProduct(matchedProduct);
   };
 
   // บันทึกสำเร็จ
@@ -240,6 +256,7 @@ const fetchCategories = async () => {
         product={selectedProduct}
         categories={categories}
         onSuccess={handleSuccess}
+        onSkuMatch={handleSkuMatch}
       />
     </>
   );

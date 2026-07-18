@@ -10,6 +10,9 @@ router.get("/", ProductController.getAllProducts);
 
 router.get("/active", ProductController.getActiveProducts);
 
+// ดึงสินค้าตาม SKU (ต้องอยู่ก่อน /:id เพื่อไม่ให้ "sku" ถูกตีความเป็น :id)
+router.get("/sku/:sku", ProductController.getProductBySku);
+
 // ดึงสินค้าตาม ID
 router.get("/:id", ProductController.getProductById);
 

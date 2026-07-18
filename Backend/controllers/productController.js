@@ -47,6 +47,32 @@ class ProductController {
     }
   }
 
+  // GET /api/products/sku/:sku
+  static async getProductBySku(req, res) {
+    try {
+      const product = await ProductModel.getProductBySku(req.params.sku);
+
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: "Product not found",
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        data: product,
+      });
+    } catch (error) {
+      console.error(error);
+
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch product",
+      });
+    }
+  }
+
   // POST /api/products
   static async createProduct(req, res) {
     try {
@@ -54,7 +80,16 @@ class ProductController {
         req.body.image = `/uploads/${req.file.filename}`;
       }
 
-      const result = await ProductModel.createProduct(req.body);
+      let specs = {};
+      if (req.body.specs) {
+        try {
+          specs = JSON.parse(req.body.specs);
+        } catch {
+          specs = {};
+        }
+      }
+
+      const result = await ProductModel.createProduct({ ...req.body, specs });
 
       res.status(201).json({
         success: true,
@@ -78,7 +113,16 @@ class ProductController {
         req.body.image = `/uploads/${req.file.filename}`;
       }
 
-      const result = await ProductModel.updateProduct(req.params.id, req.body);
+      let specs = {};
+      if (req.body.specs) {
+        try {
+          specs = JSON.parse(req.body.specs);
+        } catch {
+          specs = {};
+        }
+      }
+
+      const result = await ProductModel.updateProduct(req.params.id, { ...req.body, specs });
 
       if (result.affectedRows === 0) {
         return res.status(404).json({

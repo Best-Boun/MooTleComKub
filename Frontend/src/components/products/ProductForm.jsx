@@ -3,9 +3,16 @@ import { Button, Col, Form, Row, Spinner, InputGroup } from "react-bootstrap";
 import productService from "../../services/productService";
 import brandService from "../../services/brandService";
 import categoryService from "../../services/categoryService";
+import specTemplateService from "../../services/specTemplateService";
 import Swal from "sweetalert2";
 
-export default function ProductForm({ mode, product, onSuccess, onClose }) {
+export default function ProductForm({
+  mode,
+  product,
+  onSuccess,
+  onClose,
+  onSkuMatch,
+}) {
   const [preview, setPreview] = useState("");
 
   const [formData, setFormData] = useState({
@@ -18,24 +25,16 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
     price: "",
     stock: "",
     warranty_provider: "",
-    cpu: "",
-    gpu: "",
-    ram: "",
-    display: "",
-    storage: "",
-
-    mainboard: "",
-    power_supply: "",
-    case_name: "",
-    cooling: "",
-
     status: "ACTIVE",
+    specs: {},
   });
 
   const [categories, setCategories] = useState([]);
   const [brands, setBrands] = useState([]);
   const [brandsLoading, setBrandsLoading] = useState(true);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [specFields, setSpecFields] = useState([]);
+  const [specFieldsLoading, setSpecFieldsLoading] = useState(false);
 
   useEffect(() => {
     const loadCategories = async () => {
@@ -94,7 +93,38 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
   }, [formData.category_id]);
 
   useEffect(() => {
+    const loadSpecFields = async () => {
+      if (!formData.category_id) {
+        setSpecFields([]);
+        return;
+      }
+
+      try {
+        setSpecFieldsLoading(true);
+        const res = await specTemplateService.getByCategory(
+          formData.category_id,
+        );
+        setSpecFields(Array.isArray(res?.data) ? res.data : []);
+      } catch (err) {
+        console.error(err);
+        setSpecFields([]);
+      } finally {
+        setSpecFieldsLoading(false);
+      }
+    };
+
+    loadSpecFields();
+  }, [formData.category_id]);
+
+  useEffect(() => {
     if (mode === "edit" && product) {
+      const specsObj = {};
+      if (Array.isArray(product.specs)) {
+        product.specs.forEach((s) => {
+          specsObj[s.spec_name] = s.spec_value;
+        });
+      }
+
       setFormData({
         category_id: product.category_id || "",
         brand_id: product.brand_id || "",
@@ -105,18 +135,8 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
         price: product.price || "",
         stock: product.stock || "",
         warranty_provider: product.warranty_provider || "",
-        cpu: product.cpu || "",
-        gpu: product.gpu || "",
-        ram: product.ram || "",
-        display: product.display || "",
-        storage: product.storage || "",
-
-        mainboard: product.mainboard || "",
-        power_supply: product.power_supply || "",
-        case_name: product.case_name || "",
-        cooling: product.cooling || "",
-
         status: product.status || "ACTIVE",
+        specs: specsObj,
       });
 
       if (product.image) {
@@ -127,12 +147,6 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
     }
   }, [mode, product]);
 
-  const selectedCategory = categories.find(
-    (c) => Number(c.category_id) === Number(formData.category_id),
-  );
-
-  const categoryName = selectedCategory?.category_name || "";
-
   const handleChange = (e) => {
     const { name, value } = e.target;
 
@@ -141,6 +155,7 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
         ...prev,
         category_id: value,
         brand_id: "",
+        specs: {},
       }));
 
       return;
@@ -150,6 +165,36 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
       ...prev,
       [name]: value,
     }));
+  };
+
+  const handleSpecChange = (specName, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      specs: { ...prev.specs, [specName]: value },
+    }));
+  };
+
+  const handleSkuBlur = async () => {
+    if (mode !== "add") return;
+
+    const sku = formData.sku.trim();
+    if (!sku) return;
+
+    try {
+      const res = await productService.getProductBySku(sku);
+
+      if (res?.success && res?.data) {
+        await Swal.fire({
+          icon: "info",
+          title: "พบ SKU นี้อยู่แล้ว",
+          text: `สินค้า "${res.data.product_name}" ใช้ SKU นี้อยู่แล้ว ระบบจะเปลี่ยนเป็นโหมดแก้ไขสินค้านี้ให้`,
+        });
+
+        onSkuMatch?.(res.data);
+      }
+    } catch (err) {
+      // 404 = ไม่พบ SKU นี้ ถือเป็นเรื่องปกติ ไม่ต้องแจ้งอะไร
+    }
   };
 
   const handleImageChange = (e) => {
@@ -171,7 +216,11 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
     const submitData = new FormData();
 
     Object.keys(formData).forEach((key) => {
-      submitData.append(key, formData[key]);
+      if (key === "specs") {
+        submitData.append("specs", JSON.stringify(formData.specs || {}));
+      } else {
+        submitData.append(key, formData[key]);
+      }
     });
 
     try {
@@ -270,6 +319,7 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
           name="sku"
           value={formData.sku}
           onChange={handleChange}
+          onBlur={handleSkuBlur}
           required
         />
       </Form.Group>
@@ -380,129 +430,31 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
         />
       </Form.Group>
 
-      {["Notebook", "Computer Set"].includes(categoryName) && (
-        <Row>
-          <Col md={6}>
-            <Form.Group className="mb-3">
-              <Form.Label>CPU</Form.Label>
-              <Form.Control
-                name="cpu"
-                value={formData.cpu}
-                onChange={handleChange}
-                placeholder="e.g. Intel Core i7-14700HX"
-              />
-            </Form.Group>
-          </Col>
-
-          <Col md={6}>
-            <Form.Group className="mb-3">
-              <Form.Label>GPU</Form.Label>
-              <Form.Control
-                name="gpu"
-                value={formData.gpu}
-                onChange={handleChange}
-                placeholder="e.g. RTX 4060"
-              />
-            </Form.Group>
-          </Col>
-        </Row>
+      {specFieldsLoading && (
+        <div className="mb-3">
+          <Spinner animation="border" size="sm" />
+        </div>
       )}
 
-      {categoryName === "Computer Set" && (
-        <Row>
-          <Col md={6}>
-            <Form.Group className="mb-3">
-              <Form.Label>Mainboard</Form.Label>
-              <Form.Control
-                name="mainboard"
-                value={formData.mainboard}
-                onChange={handleChange}
-                placeholder="e.g. ASUS B760M"
-              />
-            </Form.Group>
-          </Col>
-
-          <Col md={6}>
-            <Form.Group className="mb-3">
-              <Form.Label>Power Supply</Form.Label>
-              <Form.Control
-                name="power_supply"
-                value={formData.power_supply}
-                onChange={handleChange}
-                placeholder="e.g. Corsair RM750e"
-              />
-            </Form.Group>
-          </Col>
-        </Row>
-      )}
-
-      {categoryName === "Computer Set" && (
-        <Row>
-          <Col md={6}>
-            <Form.Group className="mb-3">
-              <Form.Label>Case</Form.Label>
-              <Form.Control
-                name="case_name"
-                value={formData.case_name}
-                onChange={handleChange}
-                placeholder="e.g. NZXT H5 Flow"
-              />
-            </Form.Group>
-          </Col>
-
-          <Col md={6}>
-            <Form.Group className="mb-3">
-              <Form.Label>Cooling</Form.Label>
-              <Form.Control
-                name="cooling"
-                value={formData.cooling}
-                onChange={handleChange}
-                placeholder="e.g. DeepCool AK620"
-              />
-            </Form.Group>
-          </Col>
-        </Row>
-      )}
-
-      {["Notebook", "Computer Set"].includes(categoryName) && (
-        <Row>
-          <Col md={6}>
-            <Form.Group className="mb-3">
-              <Form.Label>RAM</Form.Label>
-              <Form.Control
-                name="ram"
-                value={formData.ram}
-                onChange={handleChange}
-                placeholder="e.g. 16GB DDR5"
-              />
-            </Form.Group>
-          </Col>
-
-          <Col md={6}>
-            <Form.Group className="mb-3">
-              <Form.Label>Storage</Form.Label>
-              <Form.Control
-                name="storage"
-                value={formData.storage}
-                onChange={handleChange}
-                placeholder="e.g. 1TB SSD"
-              />
-            </Form.Group>
-          </Col>
-        </Row>
-      )}
-
-      {categoryName === "Notebook" && (
-        <Form.Group className="mb-3">
-          <Form.Label>Display</Form.Label>
-
-          <Form.Control
-            name="display"
-            value={formData.display}
-            onChange={handleChange}
-            placeholder="e.g. 15.6-inch FHD 144Hz"
-          />
-        </Form.Group>
+      {!specFieldsLoading && specFields.length > 0 && (
+        <>
+          <Form.Label className="d-block mb-2">Specifications</Form.Label>
+          <Row>
+            {specFields.map((fieldName) => (
+              <Col md={6} key={fieldName}>
+                <Form.Group className="mb-3">
+                  <Form.Label>{fieldName}</Form.Label>
+                  <Form.Control
+                    value={formData.specs[fieldName] || ""}
+                    onChange={(e) =>
+                      handleSpecChange(fieldName, e.target.value)
+                    }
+                  />
+                </Form.Group>
+              </Col>
+            ))}
+          </Row>
+        </>
       )}
 
       <Form.Group className="mb-4">

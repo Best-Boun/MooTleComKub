@@ -13,6 +13,12 @@ const productService = {
     return response.data;
   },
 
+  // ดึงสินค้าตาม SKU (เช็ค SKU ซ้ำ)
+  async getProductBySku(sku) {
+    const response = await api.get(`/products/sku/${sku}`);
+    return response.data;
+  },
+
   // เพิ่มสินค้า
   async createProduct(data) {
     const response = await api.post("/products", data, {

@@ -8,6 +8,7 @@ export default function ProductModal({
   product,
   categories,
   onSuccess,
+  onSkuMatch,
 }) {
   return (
     <Modal show={show} onHide={onHide} size="lg" centered>
@@ -24,6 +25,7 @@ export default function ProductModal({
           categories={categories}
           onSuccess={onSuccess}
           onClose={onHide}
+          onSkuMatch={onSkuMatch}
         />
       </Modal.Body>
     </Modal>
