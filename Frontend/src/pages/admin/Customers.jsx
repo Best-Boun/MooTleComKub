@@ -107,7 +107,8 @@ export default function Customers() {
 
     const matchSearch =
       fullName.toLowerCase().includes(search.toLowerCase()) ||
-      customer.email.toLowerCase().includes(search.toLowerCase());
+      customer.email.toLowerCase().includes(search.toLowerCase()) ||
+      (customer.phone || "").includes(search);
 
     const matchStatus = status === "" || customer.status === status;
 

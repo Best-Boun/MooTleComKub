@@ -151,13 +151,7 @@ export default function CustomerDetail() {
                 </h3>
               </div>
 
-              <div>
-                <h6>Warranty Claims</h6>
-
-                <h3 className="text-warning">
-                  {statistics?.total_claims || 0}
-                </h3>
-              </div>
+             
             </Card.Body>
           </Card>
         </Col>

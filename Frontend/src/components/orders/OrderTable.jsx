@@ -1,4 +1,5 @@
 import { Button, Form, Table } from "react-bootstrap";
+import { LockFill } from "react-bootstrap-icons";
 
 export default function OrderTable({
   orders,
@@ -39,18 +40,34 @@ export default function OrderTable({
               <td>฿{Number(order.total_amount).toLocaleString()}</td>
 
               <td style={{ minWidth: "170px" }}>
-                <Form.Select
-                  size="sm"
-                  value={order.order_status}
-                  onChange={(e) =>
-                    onUpdateStatus(order.order_id, e.target.value)
-                  }
-                >
-                  <option value="PENDING">🟡 Pending</option>
-                  <option value="PAID">🔵 Paid</option>
-                  <option value="DELIVERED">🟢 Delivered</option>
-                  <option value="CANCELLED">🔴 Cancelled</option>
-                </Form.Select>
+                {order.order_status === "DELIVERED" ||
+                order.order_status === "CANCELLED" ? (
+                  <div
+                    className="d-flex justify-content-between align-items-center border rounded px-2 py-1 bg-light"
+                    style={{ height: "31px" }}
+                  >
+                    <span>
+                      {order.order_status === "DELIVERED"
+                        ? "🟢 Delivered"
+                        : "🔴 Cancelled"}
+                    </span>
+
+                    <LockFill className="text-secondary" title="Locked" />
+                  </div>
+                ) : (
+                  <Form.Select
+                    size="sm"
+                    value={order.order_status}
+                    onChange={(e) =>
+                      onUpdateStatus(order.order_id, e.target.value)
+                    }
+                  >
+                    <option value="PENDING">🟡 Pending</option>
+                    <option value="PAID">🔵 Paid</option>
+                    <option value="DELIVERED">🟢 Delivered</option>
+                    <option value="CANCELLED">🔴 Cancelled</option>
+                  </Form.Select>
+                )}
               </td>
 
               <td>{new Date(order.order_date).toLocaleDateString()}</td>

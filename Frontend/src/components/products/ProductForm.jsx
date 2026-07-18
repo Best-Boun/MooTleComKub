@@ -61,11 +61,18 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
       try {
         setBrandsLoading(true);
 
-        const res = await brandService.getBrandsByCategory(
-          formData.category_id,
-        );
+        const brandList = Array.isArray(res?.data) ? res.data : [];
 
-        setBrands(Array.isArray(res?.data) ? res.data : []);
+        setBrands(brandList);
+
+        // ถ้ามี Brand แค่ตัวเดียว ให้เลือกให้อัตโนมัติ
+        if (brandList.length === 1) {
+          setFormData((prev) => ({
+            ...prev,
+            brand_id: brandList[0].brand_id,
+          }));
+        }
+
       } catch (err) {
         console.error(err);
         setBrands([]);
@@ -107,6 +114,16 @@ export default function ProductForm({ mode, product, onSuccess, onClose }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+
+    if (name === "category_id") {
+      setFormData((prev) => ({
+        ...prev,
+        category_id: value,
+        brand_id: "",
+      }));
+
+      return;
+    }
 
     setFormData((prev) => ({
       ...prev,

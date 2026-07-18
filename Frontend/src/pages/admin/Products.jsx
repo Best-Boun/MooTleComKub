@@ -17,6 +17,7 @@ export default function Products() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("");
   const [status, setStatus] = useState("");
+  const [brand, setBrand] = useState("");
 
   const [showModal, setShowModal] = useState(false);
 
@@ -166,9 +167,11 @@ const fetchCategories = async () => {
 
     const matchCategory = category === "" || product.category_name === category;
 
+    const matchBrand = brand === "" || product.brand_name === brand;
+
     const matchStatus = status === "" || product.status === status;
 
-    return matchSearch && matchCategory && matchStatus;
+    return matchSearch && matchCategory && matchBrand && matchStatus;
   });
 
   // Pagination
@@ -200,6 +203,8 @@ const fetchCategories = async () => {
             setSearch={setSearch}
             category={category}
             setCategory={setCategory}
+            brand={brand}
+            setBrand={setBrand}
             status={status}
             setStatus={setStatus}
             categories={categories}
