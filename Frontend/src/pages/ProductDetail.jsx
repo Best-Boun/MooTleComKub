@@ -239,34 +239,70 @@ export default function ProductDetail() {
                   </span>
                 </div>
 
-                <div className="tck-spec-row">
-                  <span className="tck-spec-mark tck-mono">CPU</span>
-                  <span className="tck-spec-text">{product.cpu || "-"}</span>
-                </div>
+                {product.cpu && (
+                  <div className="tck-spec-row">
+                    <span className="tck-spec-mark tck-mono">CPU</span>
+                    <span className="tck-spec-text">{product.cpu}</span>
+                  </div>
+                )}
 
-                <div className="tck-spec-row">
-                  <span className="tck-spec-mark tck-mono">GPU</span>
-                  <span className="tck-spec-text">{product.gpu || "-"}</span>
-                </div>
+                {product.gpu && (
+                  <div className="tck-spec-row">
+                    <span className="tck-spec-mark tck-mono">GPU</span>
+                    <span className="tck-spec-text">{product.gpu}</span>
+                  </div>
+                )}
 
-                <div className="tck-spec-row">
-                  <span className="tck-spec-mark tck-mono">RAM</span>
-                  <span className="tck-spec-text">{product.ram || "-"}</span>
-                </div>
+                {product.ram && (
+                  <div className="tck-spec-row">
+                    <span className="tck-spec-mark tck-mono">RAM</span>
+                    <span className="tck-spec-text">{product.ram}</span>
+                  </div>
+                )}
 
-                <div className="tck-spec-row">
-                  <span className="tck-spec-mark tck-mono">DSP</span>
-                  <span className="tck-spec-text">
-                    {product.display || "-"}
-                  </span>
-                </div>
+                {product.display && (
+                  <div className="tck-spec-row">
+                    <span className="tck-spec-mark tck-mono">Display</span>
+                    <span className="tck-spec-text">{product.display}</span>
+                  </div>
+                )}
 
-                <div className="tck-spec-row">
-                  <span className="tck-spec-mark tck-mono">SSD</span>
-                  <span className="tck-spec-text">
-                    {product.storage || "-"}
-                  </span>
-                </div>
+                {product.storage && (
+                  <div className="tck-spec-row">
+                    <span className="tck-spec-mark tck-mono">Storage</span>
+                    <span className="tck-spec-text">{product.storage}</span>
+                  </div>
+                )}
+
+                {product.mainboard && (
+                  <div className="tck-spec-row">
+                    <span className="tck-spec-mark tck-mono">MB</span>
+                    <span className="tck-spec-text">{product.mainboard}</span>
+                  </div>
+                )}
+
+                {product.power_supply && (
+                  <div className="tck-spec-row">
+                    <span className="tck-spec-mark tck-mono">PSU</span>
+                    <span className="tck-spec-text">
+                      {product.power_supply}
+                    </span>
+                  </div>
+                )}
+
+                {product.case_name && (
+                  <div className="tck-spec-row">
+                    <span className="tck-spec-mark tck-mono">CASE</span>
+                    <span className="tck-spec-text">{product.case_name}</span>
+                  </div>
+                )}
+
+                {product.cooling && (
+                  <div className="tck-spec-row">
+                    <span className="tck-spec-mark tck-mono">COOL</span>
+                    <span className="tck-spec-text">{product.cooling}</span>
+                  </div>
+                )}
               </div>
 
               <div className="tck-detail-actions">
