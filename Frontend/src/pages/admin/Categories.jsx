@@ -8,8 +8,12 @@ import CategoryTable from "../../components/categories/CategoryTable";
 import CategoryFilter from "../../components/categories/CategoryFilter";
 import CategoryModal from "../../components/categories/CategoryModal";
 import CustomPagination from "../../components/common/Pagination";
+import { usePermissions } from "../../context/PermissionContext";
 
 export default function Categories() {
+  const { canManage } = usePermissions();
+  const allowManage = canManage("categories");
+
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -48,12 +52,16 @@ export default function Categories() {
   }, []);
 
   const handleAdd = () => {
+    if (!allowManage) return;
+
     setMode("add");
     setSelectedCategory(null);
     setShowModal(true);
   };
 
   const handleEdit = (category) => {
+    if (!allowManage) return;
+
     setMode("edit");
     setSelectedCategory(category);
     setShowModal(true);
@@ -65,6 +73,8 @@ export default function Categories() {
   };
 
   const handleDelete = async (id) => {
+    if (!allowManage) return;
+
     const result = await Swal.fire({
       title: "Delete Category?",
       text: "คุณต้องการลบหมวดหมู่นี้หรือไม่",
@@ -124,9 +134,11 @@ export default function Categories() {
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h3 className="fw-bold mb-0">Categories</h3>
 
-            <Button variant="primary" onClick={handleAdd}>
-              + Add Category
-            </Button>
+            {allowManage && (
+              <Button variant="primary" onClick={handleAdd}>
+                + Add Category
+              </Button>
+            )}
           </div>
 
           <CategoryFilter
@@ -146,6 +158,7 @@ export default function Categories() {
                 categories={currentCategories}
                 onDelete={handleDelete}
                 onEdit={handleEdit}
+                allowManage={allowManage}
               />
 
               <CustomPagination

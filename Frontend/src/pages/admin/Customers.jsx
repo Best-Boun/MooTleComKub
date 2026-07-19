@@ -10,9 +10,12 @@ import CustomerFilter from "../../components/customers/CustomerFilter";
 import CustomerModal from "../../components/customers/CustomerModal";
 
 import CustomPagination from "../../components/common/Pagination";
+import { usePermissions } from "../../context/PermissionContext";
 
 export default function Customers() {
   const navigate = useNavigate();
+  const { canManage } = usePermissions();
+  const allowManage = canManage("customers");
 
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -54,6 +57,8 @@ export default function Customers() {
 
   // เปิด Edit
   const handleEdit = (customer) => {
+    if (!allowManage) return;
+
     setSelectedCustomer(customer);
     setShowModal(true);
   };
@@ -66,6 +71,8 @@ export default function Customers() {
 
   // Delete
   const handleDelete = async (id) => {
+    if (!allowManage) return;
+
     const result = await Swal.fire({
       title: "Delete Customer?",
       text: "คุณต้องการลบลูกค้าคนนี้หรือไม่",
@@ -149,6 +156,7 @@ export default function Customers() {
                 }
                 onEdit={handleEdit}
                 onDelete={handleDelete}
+                allowManage={allowManage}
               />
 
               <CustomPagination

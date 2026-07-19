@@ -1,6 +1,12 @@
 import { Badge, Button, Table } from "react-bootstrap";
 
-export default function CustomerTable({ customers, onView, onEdit, onDelete }) {
+export default function CustomerTable({
+  customers,
+  onView,
+  onEdit,
+  onDelete,
+  allowManage = true,
+}) {
   return (
     <Table striped bordered hover responsive>
       <thead className="table-dark">
@@ -52,22 +58,26 @@ export default function CustomerTable({ customers, onView, onEdit, onDelete }) {
                   <i className="bi bi-eye"></i> View
                 </Button>
 
-                <Button
-                  size="sm"
-                  variant="warning"
-                  className="me-2"
-                  onClick={() => onEdit(customer)}
-                >
-                  Edit
-                </Button>
+                {allowManage && (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="warning"
+                      className="me-2"
+                      onClick={() => onEdit(customer)}
+                    >
+                      Edit
+                    </Button>
 
-                <Button
-                  size="sm"
-                  variant="danger"
-                  onClick={() => onDelete(customer.user_id)}
-                >
-                  Delete
-                </Button>
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      onClick={() => onDelete(customer.user_id)}
+                    >
+                      Delete
+                    </Button>
+                  </>
+                )}
               </td>
             </tr>
           ))

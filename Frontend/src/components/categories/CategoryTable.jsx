@@ -1,6 +1,11 @@
 import { Badge, Button, Table } from "react-bootstrap";
 
-export default function CategoryTable({ categories, onDelete, onEdit }) {
+export default function CategoryTable({
+  categories,
+  onDelete,
+  onEdit,
+  allowManage = true,
+}) {
   return (
     <Table striped bordered hover responsive>
       <thead className="table-dark">
@@ -38,22 +43,28 @@ export default function CategoryTable({ categories, onDelete, onEdit }) {
               </td>
 
               <td>
-                <Button
-                  size="sm"
-                  variant="warning"
-                  className="me-2"
-                  onClick={() => onEdit(category)}
-                >
-                  Edit
-                </Button>
+                {allowManage ? (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="warning"
+                      className="me-2"
+                      onClick={() => onEdit(category)}
+                    >
+                      Edit
+                    </Button>
 
-                <Button
-                  size="sm"
-                  variant="danger"
-                  onClick={() => onDelete(category.category_id)}
-                >
-                  Delete
-                </Button>
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      onClick={() => onDelete(category.category_id)}
+                    >
+                      Delete
+                    </Button>
+                  </>
+                ) : (
+                  <span className="text-muted small">ดูได้อย่างเดียว</span>
+                )}
               </td>
             </tr>
           ))

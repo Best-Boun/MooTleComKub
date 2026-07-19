@@ -5,6 +5,7 @@ export default function ProductTable({
   onDelete,
   onEdit,
   onToggleStatus,
+  allowManage = true,
 }) {
   return (
     <Table striped bordered hover responsive>
@@ -67,25 +68,27 @@ export default function ProductTable({
               </td>
 
               <td>
-                <div className="d-flex gap-2 flex-wrap">
-                  <Button
-                    size="sm"
-                    variant="warning"
-                    onClick={() => onEdit(product)}
-                  >
-                    Edit
-                  </Button>
+                {allowManage ? (
+                  <div className="d-flex gap-2 flex-wrap">
+                    <Button
+                      size="sm"
+                      variant="warning"
+                      onClick={() => onEdit(product)}
+                    >
+                      Edit
+                    </Button>
 
-                  
-
-                  <Button
-                    size="sm"
-                    variant="danger"
-                    onClick={() => onDelete(product.product_id)}
-                  >
-                    Delete
-                  </Button>
-                </div>
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      onClick={() => onDelete(product.product_id)}
+                    >
+                      Delete
+                    </Button>
+                  </div>
+                ) : (
+                  <span className="text-muted small">ดูได้อย่างเดียว</span>
+                )}
               </td>
             </tr>
           ))

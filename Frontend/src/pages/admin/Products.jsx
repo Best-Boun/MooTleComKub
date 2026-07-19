@@ -8,8 +8,12 @@ import ProductFilter from "../../components/products/ProductFilter";
 import CustomPagination from "../../components/common/Pagination";
 import ProductModal from "../../components/products/ProductModal";
 import categoryService from "../../services/categoryService";
+import { usePermissions } from "../../context/PermissionContext";
 
 export default function Products() {
+  const { canManage } = usePermissions();
+  const allowManage = canManage("products");
+
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
@@ -49,23 +53,24 @@ export default function Products() {
     }
   };
 
-const fetchCategories = async () => {
-  try {
-    const res = await categoryService.getAllCategories();
-    setCategories(res.data);
-  } catch (error) {
-    console.error(error);
-  }
-};
+  const fetchCategories = async () => {
+    try {
+      const res = await categoryService.getAllCategories();
+      setCategories(res.data);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-
- useEffect(() => {
-   fetchProducts();
-   fetchCategories();
- }, []);
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, []);
 
   // ลบสินค้า
   const handleDelete = async (id) => {
+    if (!allowManage) return;
+
     const result = await Swal.fire({
       title: "Delete Product?",
       text: "คุณต้องการลบสินค้านี้หรือไม่",
@@ -103,6 +108,8 @@ const fetchCategories = async () => {
   };
 
   const handleToggleStatus = async (product) => {
+    if (!allowManage) return;
+
     const action = product.status === "ACTIVE" ? "Disable" : "Enable";
 
     const result = await Swal.fire({
@@ -141,6 +148,8 @@ const fetchCategories = async () => {
 
   // เพิ่มสินค้า
   const handleAdd = () => {
+    if (!allowManage) return;
+
     setMode("add");
     setSelectedProduct(null);
     setShowModal(true);
@@ -148,6 +157,8 @@ const fetchCategories = async () => {
 
   // แก้ไขสินค้า
   const handleEdit = async (product) => {
+    if (!allowManage) return;
+
     try {
       const res = await productService.getProductById(product.product_id);
       setMode("edit");
@@ -209,9 +220,11 @@ const fetchCategories = async () => {
           <div className="d-flex justify-content-between align-items-center mb-4">
             <h3 className="fw-bold mb-0">Products</h3>
 
-            <Button variant="primary" onClick={handleAdd}>
-              + Add Product
-            </Button>
+            {allowManage && (
+              <Button variant="primary" onClick={handleAdd}>
+                + Add Product
+              </Button>
+            )}
           </div>
 
           <ProductFilter
@@ -237,6 +250,7 @@ const fetchCategories = async () => {
                 onDelete={handleDelete}
                 onEdit={handleEdit}
                 onToggleStatus={handleToggleStatus}
+                allowManage={allowManage}
               />
 
               <CustomPagination

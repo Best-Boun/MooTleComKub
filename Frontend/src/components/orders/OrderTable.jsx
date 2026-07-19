@@ -1,4 +1,4 @@
-import { Button, Form, Table } from "react-bootstrap";
+import { Badge, Button, Form, Table } from "react-bootstrap";
 import { LockFill } from "react-bootstrap-icons";
 
 export default function OrderTable({
@@ -6,6 +6,7 @@ export default function OrderTable({
   onView,
   onDelete,
   onUpdateStatus,
+  allowManage = true,
 }) {
   return (
     <Table striped bordered hover responsive>
@@ -40,7 +41,8 @@ export default function OrderTable({
               <td>฿{Number(order.total_amount).toLocaleString()}</td>
 
               <td style={{ minWidth: "170px" }}>
-                {order.order_status === "DELIVERED" ||
+                {!allowManage ||
+                order.order_status === "DELIVERED" ||
                 order.order_status === "CANCELLED" ? (
                   <div
                     className="d-flex justify-content-between align-items-center border rounded px-2 py-1 bg-light"
@@ -49,7 +51,9 @@ export default function OrderTable({
                     <span>
                       {order.order_status === "DELIVERED"
                         ? "🟢 Delivered"
-                        : "🔴 Cancelled"}
+                        : order.order_status === "CANCELLED"
+                          ? "🔴 Cancelled"
+                          : order.order_status}
                     </span>
 
                     <LockFill className="text-secondary" title="Locked" />
@@ -82,13 +86,15 @@ export default function OrderTable({
                   View
                 </Button>
 
-                <Button
-                  size="sm"
-                  variant="danger"
-                  onClick={() => onDelete(order.order_id)}
-                >
-                  Delete
-                </Button>
+                {allowManage && (
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    onClick={() => onDelete(order.order_id)}
+                  >
+                    Delete
+                  </Button>
+                )}
               </td>
             </tr>
           ))

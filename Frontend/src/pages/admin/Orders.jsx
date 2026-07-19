@@ -8,9 +8,12 @@ import orderService from "../../services/orderService";
 import OrderTable from "../../components/orders/OrderTable";
 import OrderFilter from "../../components/orders/OrderFilter";
 import CustomPagination from "../../components/common/Pagination";
+import { usePermissions } from "../../context/PermissionContext";
 
 export default function Orders() {
   const navigate = useNavigate();
+  const { canManage } = usePermissions();
+  const allowManage = canManage("orders");
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -54,6 +57,8 @@ export default function Orders() {
 
   // ลบ Order
   const handleDelete = async (id) => {
+    if (!allowManage) return;
+
     const result = await Swal.fire({
       title: "Delete Order?",
       text: "คุณต้องการลบ Order นี้หรือไม่",
@@ -90,28 +95,29 @@ export default function Orders() {
     }
   };
 
-const handleUpdateStatus = async (id, status) => {
-  try {
-    await orderService.updateOrderStatus(id, status);
+  const handleUpdateStatus = async (id, status) => {
+    if (!allowManage) return;
 
-    Swal.fire({
-      icon: "success",
-      title: "Updated!",
-      text: "Order status updated successfully.",
-      timer: 1200,
-      showConfirmButton: false,
-    });
+    try {
+      await orderService.updateOrderStatus(id, status);
 
-    fetchOrders();
-  } catch (error) {
-    Swal.fire({
-      icon: "error",
-      title: "Update Failed",
-      text: error.response?.data?.message || "Something went wrong",
-    });
-  }
-};
+      Swal.fire({
+        icon: "success",
+        title: "Updated!",
+        text: "Order status updated successfully.",
+        timer: 1200,
+        showConfirmButton: false,
+      });
 
+      fetchOrders();
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Update Failed",
+        text: error.response?.data?.message || "Something went wrong",
+      });
+    }
+  };
 
   // Filter
   const filteredOrders = orders.filter((order) => {
@@ -155,6 +161,7 @@ const handleUpdateStatus = async (id, status) => {
               onView={handleView}
               onDelete={handleDelete}
               onUpdateStatus={handleUpdateStatus}
+              allowManage={allowManage}
             />
 
             <CustomPagination
