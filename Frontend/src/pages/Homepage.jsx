@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dropdown } from "react-bootstrap";
 import { FiMenu, FiSearch, FiShoppingCart } from "react-icons/fi";
@@ -25,6 +25,11 @@ export default function Homepage() {
   const [addingId, setAddingId] = useState(null);
   const [cartMessage, setCartMessage] = useState("");
   const [cartCount, setCartCount] = useState(0);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [cartLoading, setCartLoading] = useState(false);
+  const [cartItems, setCartItems] = useState([]);
+  const [cartTotal, setCartTotal] = useState(0);
+  const cartPopupRef = useRef(null);
 
   const [search, setSearch] = useState("");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -96,6 +101,64 @@ export default function Homepage() {
 
     loadCartCount();
   }, [token]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (cartPopupRef.current && !cartPopupRef.current.contains(e.target)) {
+        setCartOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleCartToggle = async () => {
+    const willOpen = !cartOpen;
+    setCartOpen(willOpen);
+
+    if (!willOpen || !token) return;
+
+    setCartLoading(true);
+    try {
+      const [cartRes, productsRes] = await Promise.all([
+        cartService.getCart(),
+        productService.getAllProducts(),
+      ]);
+
+      const items = Array.isArray(cartRes?.data?.items)
+        ? cartRes.data.items.filter((item) => item && item.cart_item_id)
+        : [];
+
+      const productsById = {};
+      (Array.isArray(productsRes?.data) ? productsRes.data : []).forEach((p) => {
+        productsById[p.product_id] = p;
+      });
+
+      const enriched = items.map((item) => ({
+        ...item,
+        product: productsById[item.product_id],
+      }));
+
+      const total = enriched.reduce(
+        (sum, item) => sum + Number(item.subtotal ?? item.price * item.quantity ?? 0),
+        0,
+      );
+
+      setCartItems(enriched);
+      setCartTotal(total);
+      setCartCount(enriched.length);
+    } catch (error) {
+      setCartItems([]);
+      setCartTotal(0);
+    } finally {
+      setCartLoading(false);
+    }
+  };
+
+  const handleGoToCart = () => {
+    setCartOpen(false);
+    navigate("/cart");
+  };
 
   useEffect(() => {
     setActiveBrands([]);
@@ -225,7 +288,6 @@ export default function Homepage() {
     setCartMessage("");
     try {
       await cartService.addItem(product.product_id, 1);
-      setCartMessage(`เพิ่ม "${product.product_name}" ลงตะกร้าแล้ว`);
       setCartCount((prev) => prev + 1);
     } catch (error) {
       console.error(error);
@@ -373,6 +435,109 @@ export default function Homepage() {
           font-size: 18px;
         }
         .tck2-cart-btn:hover { border-color: var(--accent); }
+
+        .tck2-cart-wrap { position: relative; }
+        .tck2-cart-popup {
+          position: absolute;
+          top: calc(100% + 10px);
+          right: 0;
+          width: 320px;
+          background: #fff;
+          border: 1px solid var(--line);
+          border-radius: 14px;
+          box-shadow: 0 16px 32px rgba(16,19,26,0.12);
+          padding: 14px;
+          z-index: 50;
+        }
+        .tck2-cart-empty {
+          padding: 20px 4px;
+          text-align: center;
+          color: var(--muted);
+          font-size: 13.5px;
+        }
+        .tck2-cart-empty button {
+          margin-top: 10px;
+          background: var(--accent);
+          color: #fff;
+          border: none;
+          font-size: 13px;
+          font-weight: 600;
+          padding: 8px 16px;
+          border-radius: 8px;
+          cursor: pointer;
+        }
+        .tck2-cart-item {
+          display: flex;
+          gap: 10px;
+          padding: 8px 2px;
+          border-bottom: 1px solid var(--line);
+        }
+        .tck2-cart-item:last-of-type { border-bottom: none; }
+        .tck2-cart-item-media {
+          width: 48px;
+          height: 48px;
+          border-radius: 8px;
+          overflow: hidden;
+          background: #F4F4F6;
+          flex-shrink: 0;
+        }
+        .tck2-cart-item-media img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+        .tck2-cart-item-info { flex: 1; min-width: 0; }
+        .tck2-cart-item-name {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--ink);
+          margin: 0 0 3px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .tck2-cart-item-meta { font-size: 11.5px; color: var(--muted); }
+        .tck2-cart-item-price {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--accent-dark);
+          flex-shrink: 0;
+        }
+        .tck2-cart-more {
+          font-size: 12px;
+          color: var(--muted);
+          text-align: center;
+          padding: 6px 0 2px;
+        }
+        .tck2-cart-summary {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 10px 2px 12px;
+          border-top: 1px solid var(--line);
+          margin-top: 6px;
+          font-size: 13px;
+        }
+        .tck2-cart-summary-total { font-weight: 700; font-size: 15px; color: var(--ink); }
+        .tck2-cart-goto {
+          width: 100%;
+          background: var(--accent);
+          color: #fff;
+          border: none;
+          font-weight: 600;
+          font-size: 14px;
+          padding: 11px;
+          border-radius: 10px;
+          cursor: pointer;
+        }
+        .tck2-cart-goto:hover { background: var(--accent-dark); }
+        .tck2-cart-loading {
+          padding: 20px 4px;
+          text-align: center;
+          color: var(--muted);
+          font-size: 13px;
+        }
         .tck2-cart-badge {
           position: absolute;
           top: -6px;
@@ -1058,17 +1223,82 @@ export default function Homepage() {
               </Dropdown.Menu>
             </Dropdown>
 
-            <button
-              type="button"
-              className="tck2-cart-btn"
-              onClick={() => navigate("/cart")}
-              aria-label="ตะกร้าสินค้า"
-            >
-              <FiShoppingCart size={18} />
-              {cartCount > 0 && (
-                <span className="tck2-cart-badge">{cartCount}</span>
+            <div className="tck2-cart-wrap" ref={cartPopupRef}>
+              <button
+                type="button"
+                className="tck2-cart-btn"
+                onClick={handleCartToggle}
+                aria-label="ตะกร้าสินค้า"
+              >
+                <FiShoppingCart size={18} />
+                {cartCount > 0 && (
+                  <span className="tck2-cart-badge">{cartCount}</span>
+                )}
+              </button>
+
+              {cartOpen && (
+                <div className="tck2-cart-popup">
+                  {cartLoading ? (
+                    <div className="tck2-cart-loading">กำลังโหลด...</div>
+                  ) : cartItems.length === 0 ? (
+                    <div className="tck2-cart-empty">
+                      <div>ตะกร้าของคุณยังว่างอยู่</div>
+                      <button type="button" onClick={() => setCartOpen(false)}>
+                        เลือกซื้อสินค้า
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      {cartItems.slice(0, 3).map((item) => {
+                        const name =
+                          item.product?.product_name || `สินค้า #${item.product_id}`;
+                        const image = item.product?.image
+                          ? `${API_URL}${item.product.image}`
+                          : "https://placehold.co/100x100?text=No+Image";
+
+                        return (
+                          <div className="tck2-cart-item" key={item.cart_item_id}>
+                            <div className="tck2-cart-item-media">
+                              <img src={image} alt={name} />
+                            </div>
+                            <div className="tck2-cart-item-info">
+                              <div className="tck2-cart-item-name">{name}</div>
+                              <div className="tck2-cart-item-meta">
+                                จำนวน: {item.quantity}
+                              </div>
+                            </div>
+                            <div className="tck2-cart-item-price">
+                              ฿{Number(item.subtotal || 0).toLocaleString()}
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {cartItems.length > 3 && (
+                        <div className="tck2-cart-more">
+                          และอีก {cartItems.length - 3} รายการ
+                        </div>
+                      )}
+
+                      <div className="tck2-cart-summary">
+                        <span>{cartItems.length} ชิ้น</span>
+                        <span className="tck2-cart-summary-total">
+                          ยอดรวมสุทธิ: ฿{Number(cartTotal || 0).toLocaleString()}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="tck2-cart-goto"
+                        onClick={handleGoToCart}
+                      >
+                        ไปที่ตะกร้า
+                      </button>
+                    </>
+                  )}
+                </div>
               )}
-            </button>
+            </div>
           </div>
         </div>
       </div>

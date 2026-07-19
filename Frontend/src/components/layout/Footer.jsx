@@ -3,6 +3,75 @@ import { FiTruck, FiZap, FiShield, FiRotateCcw } from "react-icons/fi";
 export default function Footer() {
   return (
     <footer className="tck-footer">
+      <style>{`
+        .tck-footer {
+          margin-top: 48px;
+          background: var(--surface, #FFFFFF);
+          border-top: 1px solid var(--line, #E8E8EC);
+        }
+        .tck-footer-perks {
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 22px 24px;
+          display: grid;
+          grid-template-columns: repeat(4, 1fr);
+          gap: 16px;
+          border-bottom: 1px solid var(--line, #E8E8EC);
+        }
+        @media (max-width: 800px) { .tck-footer-perks { grid-template-columns: repeat(2, 1fr); } }
+        .tck-perk { display: flex; align-items: center; gap: 10px; }
+        .tck-perk-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--accent-dark, #B8362D);
+          flex-shrink: 0;
+        }
+        .tck-perk-title { font-size: 13px; font-weight: 600; color: var(--ink, #1C1F26); }
+        .tck-perk-sub { font-size: 11.5px; color: var(--muted, #6B7280); }
+        .tck-footer-main {
+          max-width: 1280px;
+          margin: 0 auto;
+          padding: 28px 24px;
+          display: grid;
+          grid-template-columns: 1.4fr 1fr 1fr 1fr;
+          gap: 24px;
+        }
+        @media (max-width: 800px) { .tck-footer-main { grid-template-columns: 1fr 1fr; } }
+        .tck-footer-logo {
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 700;
+          font-size: 18px;
+          color: var(--accent-dark, #B8362D);
+          margin-bottom: 8px;
+        }
+        .tck-footer-brand p { font-size: 13px; color: var(--muted, #6B7280); }
+        .tck-footer-head { font-size: 13px; font-weight: 600; margin-bottom: 10px; color: var(--ink, #1C1F26); }
+        .tck-footer-col a {
+          display: block;
+          font-size: 13px;
+          color: var(--muted, #6B7280);
+          text-decoration: none;
+          margin-bottom: 8px;
+        }
+        .tck-footer-col a:hover { color: var(--accent-dark, #B8362D); }
+        .tck-footer-social { display: flex; gap: 10px; }
+        .tck-footer-social span {
+          border: 1px solid var(--line, #E8E8EC);
+          border-radius: 8px;
+          padding: 5px 10px;
+          font-size: 11.5px;
+          color: var(--muted, #6B7280);
+        }
+        .tck-footer-bottom {
+          text-align: center;
+          font-size: 12px;
+          color: var(--muted, #6B7280);
+          padding: 14px 24px;
+          border-top: 1px solid var(--line, #E8E8EC);
+        }
+      `}</style>
+
       <div className="tck-footer-perks">
         <div className="tck-perk">
           <span className="tck-perk-icon"><FiTruck size={22} /></span>

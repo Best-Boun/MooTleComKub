@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import orderService from "../services/orderService";
-import CustomerNavbar from "../components/layout/CustomerNavbar";
+import CustomerLayout from "../components/layout/CustomerLayout";
 import "../styles/tckTheme.css";
 
 const STATUS_LABEL = {
@@ -134,8 +134,8 @@ export default function OrderDetail() {
   }, [id]);
 
   return (
+    <CustomerLayout>
     <div className="tck-home">
-      <CustomerNavbar />
 
       <style>{`
         .tck-order-detail-head {
@@ -275,19 +275,21 @@ export default function OrderDetail() {
 
         .tck-order-tracking-card {
           margin-top: 16px;
-          padding-top: 16px;
-          border-top: 1px solid var(--line);
+          padding: 20px;
+          background: var(--surface);
+          border: 1px solid var(--line);
+          border-radius: 14px;
         }
         .tck-order-tracking-title {
           font-family: 'Space Grotesk', sans-serif;
           font-weight: 600;
           font-size: 15px;
-          margin-bottom: 12px;
+          margin-bottom: 14px;
         }
         .tck-order-tracking-list {
           display: flex;
           flex-direction: column;
-          gap: 10px;
+          gap: 14px;
         }
         .tck-order-tracking-item {
           display: flex;
@@ -407,5 +409,6 @@ export default function OrderDetail() {
         </div>
       )}
     </div>
+    </CustomerLayout>
   );
 }

@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { FiShield } from "react-icons/fi";
 import productService from "../services/productService";
 import cartService from "../services/cartService";
-import CustomerNavbar from "../components/layout/CustomerNavbar";
+import CustomerLayout from "../components/layout/CustomerLayout";
 import "../styles/tckTheme.css";
 
 const API_URL = "http://localhost:5000";
@@ -97,7 +97,6 @@ export default function ProductDetail() {
     setMessage("");
     try {
       await cartService.addItem(product.product_id, quantity);
-      setMessage(`เพิ่ม "${product.product_name}" x${quantity} ลงตะกร้าแล้ว`);
     } catch (error) {
       console.error(error);
       setMessage(
@@ -122,15 +121,15 @@ export default function ProductDetail() {
     } catch (error) {
       console.error(error);
       setMessage(
-        error?.response?.data?.message || "ไม่สามารถดำเนินการซื้อได้",
+        error?.response?.data?.message || "ไม่สามารถทำการซื้อได้",
       );
       setBusy(false);
     }
   };
 
   return (
+    <CustomerLayout>
     <div className="tck-detail2">
-      <CustomerNavbar />
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
@@ -611,5 +610,6 @@ export default function ProductDetail() {
         )}
       </div>
     </div>
+    </CustomerLayout>
   );
 }

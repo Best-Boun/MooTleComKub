@@ -5,7 +5,7 @@ import productService from "../services/productService";
 import addressService from "../services/addressService";
 import orderService from "../services/orderService";
 import paymentService from "../services/paymentService";
-import CustomerNavbar from "../components/layout/CustomerNavbar";
+import CustomerLayout from "../components/layout/CustomerLayout";
 import "../styles/tckTheme.css";
 
 const PAYMENT_METHODS = [
@@ -162,8 +162,8 @@ export default function Checkout() {
   };
 
   return (
+    <CustomerLayout>
     <div className="tck-home">
-      <CustomerNavbar />
 
       <style>{`
         .tck-checkout-head {
@@ -587,5 +587,6 @@ export default function Checkout() {
         </div>
       )}
     </div>
+    </CustomerLayout>
   );
 }

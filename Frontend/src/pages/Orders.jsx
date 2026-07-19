@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import orderService from "../services/orderService";
-import CustomerNavbar from "../components/layout/CustomerNavbar";
+import CustomerLayout from "../components/layout/CustomerLayout";
 import "../styles/tckTheme.css";
 
 const STATUS_LABEL = {
@@ -11,6 +11,30 @@ const STATUS_LABEL = {
   DELIVERED: "จัดส่งสำเร็จ",
   CANCELLED: "ยกเลิกแล้ว",
 };
+
+const ORDER_TABS = [
+  { key: "all", label: "คำสั่งซื้อทั้งหมดของฉัน" },
+  { key: "pending", label: "ที่ต้องชำระ" },
+  { key: "processing", label: "ที่ต้องได้รับ" },
+  { key: "completed", label: "คำสั่งซื้อที่สำเร็จแล้ว" },
+  { key: "cancelled", label: "คำสั่งซื้อที่ยกเลิก" },
+];
+
+function matchesTab(order, tabKey) {
+  const status = order.order_status;
+  switch (tabKey) {
+    case "pending":
+      return status === "PENDING";
+    case "processing":
+      return status === "PAID" || status === "SHIPPED";
+    case "completed":
+      return status === "DELIVERED";
+    case "cancelled":
+      return status === "CANCELLED";
+    default:
+      return true;
+  }
+}
 
 function StatusBadge({ status }) {
   return (
@@ -26,6 +50,7 @@ export default function Orders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [activeTab, setActiveTab] = useState("all");
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -54,13 +79,38 @@ export default function Orders() {
   }, []);
 
   return (
+    <CustomerLayout>
     <div className="tck-home">
-      <CustomerNavbar />
 
       <style>{`
         .tck-orders-head {
           max-width: 1100px;
           margin: 0 auto 20px;
+        }
+        .tck-orders-tabs {
+          max-width: 1100px;
+          margin: 0 auto 20px;
+          display: flex;
+          gap: 8px;
+          flex-wrap: wrap;
+          border-bottom: 1px solid var(--line);
+        }
+        .tck-orders-tab {
+          background: none;
+          border: none;
+          padding: 10px 4px;
+          margin-right: 18px;
+          font-size: 14px;
+          color: var(--muted);
+          cursor: pointer;
+          border-bottom: 2px solid transparent;
+          white-space: nowrap;
+        }
+        .tck-orders-tab:hover { color: var(--ink); }
+        .tck-orders-tab.active {
+          color: var(--accent);
+          font-weight: 600;
+          border-bottom-color: var(--accent);
         }
         .tck-orders-list {
           max-width: 1100px;
@@ -161,6 +211,19 @@ export default function Orders() {
         </p>
       </div>
 
+      <div className="tck-orders-tabs">
+        {ORDER_TABS.map((tab) => (
+          <button
+            key={tab.key}
+            type="button"
+            className={`tck-orders-tab ${activeTab === tab.key ? "active" : ""}`}
+            onClick={() => setActiveTab(tab.key)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       {loading ? (
         <div className="tck-orders-loading">กำลังโหลด...</div>
       ) : error ? (
@@ -168,40 +231,58 @@ export default function Orders() {
           <div className="tck-empty-title">เกิดข้อผิดพลาด</div>
           <div>{error}</div>
         </div>
-      ) : orders.length === 0 ? (
-        <div className="tck-empty" style={{ maxWidth: 1100, margin: "0 auto" }}>
-          <div className="tck-empty-title">คุณยังไม่เคยสั่งซื้อสินค้า</div>
-          <div style={{ marginBottom: 16 }}>เลือกซื้อสินค้าชิ้นแรกของคุณได้เลย</div>
-          <button type="button" className="tck-cta" onClick={() => navigate("/")}>
-            เลือกซื้อสินค้า →
-          </button>
-        </div>
-      ) : (
-        <div className="tck-orders-list">
-          {orders.map((order) => (
-            <div
-              key={order.order_id}
-              className="tck-order-card"
-              onClick={() => navigate(`/orders/${order.order_id}`)}
-            >
-              <div>
-                <div className="tck-order-number">#{order.order_number}</div>
-                <div className="tck-order-date">
-                  {order.order_date ? new Date(order.order_date).toLocaleString("th-TH") : "-"}
-                </div>
-              </div>
+      ) : (() => {
+        const filteredOrders = orders.filter((order) => matchesTab(order, activeTab));
 
-              <div className="tck-order-right">
-                <StatusBadge status={order.order_status} />
-                <div className="tck-order-total">
-                  ฿{Number(order.total_amount || 0).toLocaleString()}
-                </div>
-                <span className="tck-order-arrow">→</span>
-              </div>
+        if (orders.length === 0) {
+          return (
+            <div className="tck-empty" style={{ maxWidth: 1100, margin: "0 auto" }}>
+              <div className="tck-empty-title">คุณยังไม่เคยสั่งซื้อสินค้า</div>
+              <div style={{ marginBottom: 16 }}>เลือกซื้อสินค้าชิ้นแรกของคุณได้เลย</div>
+              <button type="button" className="tck-cta" onClick={() => navigate("/")}>
+                เลือกซื้อสินค้า →
+              </button>
             </div>
-          ))}
-        </div>
-      )}
+          );
+        }
+
+        if (filteredOrders.length === 0) {
+          return (
+            <div className="tck-empty" style={{ maxWidth: 1100, margin: "0 auto" }}>
+              <div className="tck-empty-title">ยังไม่มีคำสั่งซื้อ</div>
+              <div>ไม่พบคำสั่งซื้อในหมวดนี้</div>
+            </div>
+          );
+        }
+
+        return (
+          <div className="tck-orders-list">
+            {filteredOrders.map((order) => (
+              <div
+                key={order.order_id}
+                className="tck-order-card"
+                onClick={() => navigate(`/orders/${order.order_id}`)}
+              >
+                <div>
+                  <div className="tck-order-number">#{order.order_number}</div>
+                  <div className="tck-order-date">
+                    {order.order_date ? new Date(order.order_date).toLocaleString("th-TH") : "-"}
+                  </div>
+                </div>
+
+                <div className="tck-order-right">
+                  <StatusBadge status={order.order_status} />
+                  <div className="tck-order-total">
+                    ฿{Number(order.total_amount || 0).toLocaleString()}
+                  </div>
+                  <span className="tck-order-arrow">→</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
     </div>
+    </CustomerLayout>
   );
 }

@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import cartService from "../services/cartService";
 import productService from "../services/productService";
+import CustomerLayout from "../components/layout/CustomerLayout";
+
+const API_URL = "http://localhost:5000";
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -18,9 +21,6 @@ export default function Cart() {
         cartService.getCart(),
         productService.getAllProducts(),
       ]);
-
-      console.log("CART =", cartRes);
-      console.log("PRODUCTS =", productsRes);
 
       setCart(cartRes?.data || null);
 
@@ -52,34 +52,19 @@ export default function Cart() {
     0,
   );
 
-  const hasUnavailable = items.some(
-    (item) => item.status !== "ACTIVE" || item.stock < item.quantity,
-  );
-
   const handleQuantityChange = async (item, nextQuantity) => {
     if (nextQuantity < 1) return;
     if (item.stock != null && nextQuantity > item.stock) return;
 
-    // เปลี่ยนจำนวนบนหน้าจอทันที
-    setCart((prev) => ({
-      ...prev,
-      items: prev.items.map((i) =>
-        i.cart_item_id === item.cart_item_id
-          ? {
-              ...i,
-              quantity: nextQuantity,
-              subtotal: nextQuantity * Number(i.price),
-            }
-          : i,
-      ),
-    }));
-
+    setUpdatingId(item.cart_item_id);
     try {
-      await cartService.updateItem(item.cart_item_id, nextQuantity);
+      const res = await cartService.updateItem(item.cart_item_id, nextQuantity);
+      setCart(res?.data || null);
     } catch (err) {
       console.error(err);
       setError("อัปเดตจำนวนสินค้าไม่สำเร็จ");
-      loadCart();
+    } finally {
+      setUpdatingId(null);
     }
   };
 
@@ -110,6 +95,7 @@ export default function Cart() {
   };
 
   return (
+    <CustomerLayout>
     <div className="tck-cart">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
@@ -350,15 +336,8 @@ export default function Cart() {
         }
       `}</style>
 
-      <div className="tck-cart-wrap">
-        <button
-          type="button"
-          className="tck-cart-back"
-          onClick={() => navigate("/")}
-        >
-          ← กลับหน้าแรก
-        </button>
 
+      <div className="tck-cart-wrap">
         <div className="tck-cart-head">
           <h1 className="tck-cart-title">ตะกร้าสินค้า</h1>
           <span className="tck-cart-count">{items.length} รายการ</span>
@@ -371,11 +350,7 @@ export default function Cart() {
         ) : items.length === 0 ? (
           <div className="tck-cart-empty">
             <p>ตะกร้าของคุณยังว่างอยู่</p>
-            <button
-              type="button"
-              className="tck-cart-empty-cta"
-              onClick={() => navigate("/")}
-            >
+            <button type="button" className="tck-cart-empty-cta" onClick={() => navigate("/")}>
               เลือกซื้อสินค้า →
             </button>
           </div>
@@ -383,14 +358,13 @@ export default function Cart() {
           <>
             <div className="tck-cart-list">
               {items.map((item) => {
-                const name = item.product_name;
-
-                const image = item.image
-                  ? `http://localhost:5000${item.image}`
+                const product = productsById[item.product_id];
+                const name = product?.product_name || `สินค้า #${item.product_id}`;
+                const image = product?.image
+                  ? `${API_URL}${product.image}`
                   : "https://placehold.co/150x150?text=No+Image";
-
-                const atMaxStock =
-                  item.stock != null && item.quantity >= item.stock;
+                const isUpdating = updatingId === item.cart_item_id;
+                const atMaxStock = item.stock != null && item.quantity >= item.stock;
 
                 return (
                   <div className="tck-cart-item" key={item.cart_item_id}>
@@ -403,34 +377,26 @@ export default function Cart() {
                       <span className="tck-cart-item-price">
                         ฿{Number(item.price || 0).toLocaleString()} / ชิ้น
                       </span>
-                      {item.status !== "ACTIVE" ? (
+                      {item.status !== "ACTIVE" && (
                         <div className="tck-cart-item-stock-warn">
-                          ❌ สินค้านี้ไม่พร้อมจำหน่ายแล้ว
+                          สินค้านี้ไม่พร้อมจำหน่ายแล้ว
                         </div>
-                      ) : item.stock < item.quantity ? (
-                        <div className="tck-cart-item-stock-warn">
-                          ⚠ สินค้าเหลือไม่เพียงพอ
-                        </div>
-                      ) : null}
+                      )}
                     </div>
 
                     <div className="tck-qty">
                       <button
                         type="button"
-                        disabled={item.quantity <= 1}
-                        onClick={() =>
-                          handleQuantityChange(item, item.quantity - 1)
-                        }
+                        disabled={isUpdating || item.quantity <= 1}
+                        onClick={() => handleQuantityChange(item, item.quantity - 1)}
                       >
                         −
                       </button>
                       <span>{item.quantity}</span>
                       <button
                         type="button"
-                        disabled={atMaxStock}
-                        onClick={() =>
-                          handleQuantityChange(item, item.quantity + 1)
-                        }
+                        disabled={isUpdating || atMaxStock}
+                        onClick={() => handleQuantityChange(item, item.quantity + 1)}
                       >
                         +
                       </button>
@@ -443,7 +409,7 @@ export default function Cart() {
                     <button
                       type="button"
                       className="tck-cart-item-remove"
-                      disabled={false}
+                      disabled={isUpdating}
                       onClick={() => handleRemove(item)}
                       aria-label="ลบสินค้า"
                     >
@@ -462,8 +428,6 @@ export default function Cart() {
                 </div>
               </div>
 
-              
-
               <div className="tck-cart-summary-actions">
                 <button
                   type="button"
@@ -476,7 +440,7 @@ export default function Cart() {
                 <button
                   type="button"
                   className="tck-cart-checkout"
-                  disabled={items.length === 0 || hasUnavailable}
+                  disabled={items.length === 0}
                   onClick={() => navigate("/checkout")}
                 >
                   ดำเนินการชำระเงิน →
@@ -487,5 +451,6 @@ export default function Cart() {
         )}
       </div>
     </div>
+    </CustomerLayout>
   );
 }
