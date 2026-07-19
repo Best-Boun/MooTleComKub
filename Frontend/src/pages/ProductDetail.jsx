@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { FiShield } from "react-icons/fi";
+import Swal from "sweetalert2";
 import productService from "../services/productService";
 import cartService from "../services/cartService";
 import CustomerLayout from "../components/layout/CustomerLayout";
@@ -89,7 +90,13 @@ export default function ProductDetail() {
 
   const handleAddToCart = async () => {
     if (!token) {
-      navigate("/login");
+      Swal.fire({
+        icon: "info",
+        title: "กรุณาเข้าสู่ระบบ",
+        text: "กรุณาเข้าสู่ระบบก่อนเพิ่มสินค้าลงตะกร้า",
+      }).then(() => {
+        navigate("/login");
+      });
       return;
     }
 
@@ -109,7 +116,13 @@ export default function ProductDetail() {
 
   const handleBuyNow = async () => {
     if (!token) {
-      navigate("/login");
+      Swal.fire({
+        icon: "info",
+        title: "กรุณาเข้าสู่ระบบ",
+        text: "กรุณาเข้าสู่ระบบก่อนสั่งซื้อสินค้า",
+      }).then(() => {
+        navigate("/login");
+      });
       return;
     }
 

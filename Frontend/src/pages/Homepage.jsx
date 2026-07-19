@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Dropdown } from "react-bootstrap";
+import Swal from "sweetalert2";
 import { FiMenu, FiSearch, FiShoppingCart } from "react-icons/fi";
 import productService from "../services/productService";
 import categoryService from "../services/categoryService";
@@ -116,6 +117,18 @@ export default function Homepage() {
 
   const handleCartToggle = async () => {
     const willOpen = !cartOpen;
+
+    if (willOpen && !token) {
+      Swal.fire({
+        icon: "info",
+        title: "กรุณาเข้าสู่ระบบ",
+        text: "กรุณาเข้าสู่ระบบก่อนเพิ่มสินค้าลงตะกร้า",
+      }).then(() => {
+        navigate("/login");
+      });
+      return;
+    }
+
     setCartOpen(willOpen);
 
     if (!willOpen || !token) return;
@@ -282,7 +295,13 @@ export default function Homepage() {
 
   const handleAddToCart = async (product) => {
     if (!token) {
-      navigate("/login");
+      Swal.fire({
+        icon: "info",
+        title: "กรุณาเข้าสู่ระบบ",
+        text: "กรุณาเข้าสู่ระบบก่อนเพิ่มสินค้าลงตะกร้า",
+      }).then(() => {
+        navigate("/login");
+      });
       return;
     }
 
@@ -423,6 +442,18 @@ export default function Homepage() {
           align-items: center;
           gap: 14px;
         }
+        .tck2-login-btn {
+          border: none;
+          background: var(--accent);
+          color: #fff;
+          font-weight: 600;
+          font-size: 14px;
+          padding: 9px 18px;
+          border-radius: 10px;
+          cursor: pointer;
+          white-space: nowrap;
+        }
+        .tck2-login-btn:hover { background: var(--accent-dark); }
         .tck2-cart-btn {
           position: relative;
           border: 1px solid var(--line);
@@ -1207,31 +1238,41 @@ export default function Homepage() {
           <div className="tck2-nav-spacer" />
 
           <div className="tck2-nav-actions">
-            <Dropdown align="end">
-              <Dropdown.Toggle
-                variant="light"
-                className="border-0 bg-transparent"
-              >
-                {user?.first_name || "บัญชีของฉัน"}
-              </Dropdown.Toggle>
-              <Dropdown.Menu>
-                <Dropdown.Item onClick={() => navigate("/my-account")}>
-                  บัญชีของฉัน
-                </Dropdown.Item>
-                <Dropdown.Item onClick={() => navigate("/orders")}>
-                  คำสั่งซื้อของฉัน
-                </Dropdown.Item>
-                {(user?.role_id === 2 || user?.role_id === 3) && (
-                  <Dropdown.Item onClick={() => navigate("/admin/dashboard")}>
-                    Admin Console
+            {token ? (
+              <Dropdown align="end">
+                <Dropdown.Toggle
+                  variant="light"
+                  className="border-0 bg-transparent"
+                >
+                  {user?.first_name || "บัญชีของฉัน"}
+                </Dropdown.Toggle>
+                <Dropdown.Menu>
+                  <Dropdown.Item onClick={() => navigate("/my-account")}>
+                    บัญชีของฉัน
                   </Dropdown.Item>
-                )}
-                <Dropdown.Divider />
-                <Dropdown.Item onClick={handleLogout} className="text-danger">
-                  ออกจากระบบ
-                </Dropdown.Item>
-              </Dropdown.Menu>
-            </Dropdown>
+                  <Dropdown.Item onClick={() => navigate("/orders")}>
+                    คำสั่งซื้อของฉัน
+                  </Dropdown.Item>
+                  {(user?.role_id === 2 || user?.role_id === 3) && (
+                    <Dropdown.Item onClick={() => navigate("/admin/dashboard")}>
+                      Admin Console
+                    </Dropdown.Item>
+                  )}
+                  <Dropdown.Divider />
+                  <Dropdown.Item onClick={handleLogout} className="text-danger">
+                    ออกจากระบบ
+                  </Dropdown.Item>
+                </Dropdown.Menu>
+              </Dropdown>
+            ) : (
+              <button
+                type="button"
+                className="tck2-login-btn"
+                onClick={() => navigate("/login")}
+              >
+                เข้าสู่ระบบ
+              </button>
+            )}
 
             <div className="tck2-cart-wrap" ref={cartPopupRef}>
               <button

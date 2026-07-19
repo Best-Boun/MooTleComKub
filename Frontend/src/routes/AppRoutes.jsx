@@ -28,26 +28,12 @@ export default function AppRoutes() {
     <BrowserRouter>
       <Routes>
         {/* Public */}
-        <Route
-          path="/"
-          element={
-            <PrivateRoute>
-              <Homepage />
-            </PrivateRoute>
-          }
-        />
+        <Route path="/" element={<Homepage />} />
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        <Route
-          path="/products/:id"
-          element={
-            <PrivateRoute>
-              <ProductDetail />
-            </PrivateRoute>
-          }
-        />
+        <Route path="/products/:id" element={<ProductDetail />} />
 
         <Route
           path="/cart"
