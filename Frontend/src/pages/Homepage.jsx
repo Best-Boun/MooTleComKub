@@ -6,6 +6,7 @@ import productService from "../services/productService";
 import categoryService from "../services/categoryService";
 import cartService from "../services/cartService";
 import Footer from "../components/layout/Footer";
+import logo from "../assets/ChatGPT_Image_Jul_19__2026__04_40_50_PM-removebg-preview.png";
 
 const API_URL = "http://localhost:5000";
 
@@ -1174,13 +1175,21 @@ export default function Homepage() {
             <FiMenu size={18} />
           </button>
 
-          <button
-            type="button"
-            className="tck2-logo"
-            onClick={() => navigate("/")}
-          >
-            Tle<span>Com</span>Kub
-          </button>
+        <button
+  type="button"
+  className="tck2-logo"
+  onClick={() => navigate("/")}
+>
+  <img
+    src={logo}
+    alt="MOOTLECOMKUB"
+    style={{
+      width: "55px",
+      height: "55px",
+      objectFit: "contain",
+    }}
+  />
+</button>
 
           <form className="tck2-search" onSubmit={handleSearchSubmit}>
             <input

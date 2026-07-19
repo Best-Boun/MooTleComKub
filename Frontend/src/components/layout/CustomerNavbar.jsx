@@ -4,6 +4,7 @@ import { Dropdown } from "react-bootstrap";
 import { FiSearch, FiShoppingCart } from "react-icons/fi";
 import cartService from "../../services/cartService";
 import productService from "../../services/productService";
+import logo from "../../assets/ChatGPT_Image_Jul_19__2026__04_40_50_PM-removebg-preview.png";
 
 const API_URL = "http://localhost:5000";
 
@@ -375,12 +376,20 @@ export default function CustomerNavbar() {
       <div className="tcknav-bar">
         <div className="tcknav-bar-inner">
           <button
-            type="button"
-            className="tcknav-logo"
-            onClick={() => navigate("/")}
-          >
-            Tle<span>Com</span>Kub
-          </button>
+  type="button"
+  className="tcknav-logo"
+  onClick={() => navigate("/")}
+>
+  <img
+    src={logo}
+    alt="MOOTLECOMKUB"
+    style={{
+      width: "55px",
+      height: "55px",
+      objectFit: "contain",
+    }}
+  />
+</button>
 
           <form className="tcknav-search" onSubmit={handleSearchSubmit}>
             <input
