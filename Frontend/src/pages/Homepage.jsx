@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Dropdown } from "react-bootstrap";
 import Swal from "sweetalert2";
 import { FiMenu, FiSearch, FiShoppingCart } from "react-icons/fi";
@@ -21,6 +21,7 @@ const SORT_OPTIONS = [
 
 export default function Homepage() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -34,7 +35,7 @@ export default function Homepage() {
   const [cartTotal, setCartTotal] = useState(0);
   const cartPopupRef = useRef(null);
 
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(searchParams.get("search") || "");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [activeCategoryIds, setActiveCategoryIds] = useState([]);
   const [priceMin, setPriceMin] = useState("");

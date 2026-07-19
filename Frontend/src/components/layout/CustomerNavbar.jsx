@@ -126,7 +126,8 @@ export default function CustomerNavbar() {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    navigate("/");
+    const trimmed = search.trim();
+    navigate(trimmed ? `/?search=${encodeURIComponent(trimmed)}` : "/");
   };
 
   return (
