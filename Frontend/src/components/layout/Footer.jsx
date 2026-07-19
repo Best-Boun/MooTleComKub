@@ -74,28 +74,36 @@ export default function Footer() {
 
       <div className="tck-footer-perks">
         <div className="tck-perk">
-          <span className="tck-perk-icon"><FiTruck size={22} /></span>
+          <span className="tck-perk-icon">
+            <FiTruck size={22} />
+          </span>
           <div>
             <div className="tck-perk-title">ส่งฟรีทั่วไทย</div>
             <div className="tck-perk-sub">ช้อปครบ 2,000.- ขึ้นไป</div>
           </div>
         </div>
         <div className="tck-perk">
-          <span className="tck-perk-icon"><FiZap size={22} /></span>
+          <span className="tck-perk-icon">
+            <FiZap size={22} />
+          </span>
           <div>
             <div className="tck-perk-title">ส่งด่วนภายใน 3 ชม.</div>
             <div className="tck-perk-sub">กรุงเทพฯ และพื้นที่ให้บริการ</div>
           </div>
         </div>
         <div className="tck-perk">
-          <span className="tck-perk-icon"><FiShield size={22} /></span>
+          <span className="tck-perk-icon">
+            <FiShield size={22} />
+          </span>
           <div>
             <div className="tck-perk-title">ประกันใจทุกชิ้น</div>
             <div className="tck-perk-sub">รับประกันตามมาตรฐานผู้ผลิต</div>
           </div>
         </div>
         <div className="tck-perk">
-          <span className="tck-perk-icon"><FiRotateCcw size={22} /></span>
+          <span className="tck-perk-icon">
+            <FiRotateCcw size={22} />
+          </span>
           <div>
             <div className="tck-perk-title">เปลี่ยน/คืนง่าย</div>
             <div className="tck-perk-sub">ภายใน 7 วัน*</div>
@@ -126,10 +134,18 @@ export default function Footer() {
         <div className="tck-footer-col">
           <div className="tck-footer-head">ติดตามเรา</div>
           <div className="tck-footer-social">
-            <span>FB</span>
-            <span>IG</span>
-            <span>LINE</span>
-            <span>TikTok</span>
+            <span>
+              <i class="bi bi-facebook"></i>
+            </span>
+            <span>
+              <i class="bi bi-instagram"></i>
+            </span>
+            <span>
+              <i class="bi bi-line"></i>
+            </span>
+            <span>
+              <i class="bi bi-tiktok"></i>
+            </span>
           </div>
         </div>
       </div>

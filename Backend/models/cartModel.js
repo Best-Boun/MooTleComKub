@@ -89,7 +89,15 @@ class CartModel {
     try {
       await connection.beginTransaction();
 
-      const existingItem = await this.findCartItemByProductId(cartId, productId);
+      const [rows] = await connection.query(
+        `SELECT cart_item_id, quantity, subtotal
+   FROM cart_items
+   WHERE cart_id = ? AND product_id = ?
+   LIMIT 1`,
+        [cartId, productId],
+      );
+
+      const existingItem = rows[0];
 
       if (existingItem) {
         const newQuantity = existingItem.quantity + quantity;

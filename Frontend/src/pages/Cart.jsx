@@ -73,6 +73,7 @@ export default function Cart() {
     try {
       const res = await cartService.removeItem(item.cart_item_id);
       setCart(res?.data || null);
+      alert("ลบสินค้าออกจากตะกร้าแล้ว");
     } catch (err) {
       console.error(err);
       setError("ลบสินค้าออกจากตะกร้าไม่สำเร็จ");
@@ -96,8 +97,8 @@ export default function Cart() {
 
   return (
     <CustomerLayout>
-    <div className="tck-cart">
-      <style>{`
+      <div className="tck-cart">
+        <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
 
         .tck-cart {
@@ -162,28 +163,53 @@ export default function Cart() {
           margin-bottom: 18px;
         }
 
-        .tck-cart-empty {
-          background: var(--surface);
-          border: 1px solid var(--line);
-          border-radius: 16px;
-          padding: 48px 24px;
-          text-align: center;
-          color: var(--muted);
-        }
-        .tck-cart-empty-cta {
-          margin-top: 16px;
-          display: inline-flex;
-          background: var(--ink);
-          color: #fff;
-          border: none;
-          font-family: 'Space Grotesk', sans-serif;
-          font-weight: 600;
-          font-size: 14.5px;
-          padding: 11px 20px;
-          border-radius: 10px;
-          cursor: pointer;
-        }
-        .tck-cart-empty-cta:hover { background: var(--accent); }
+       .tck-cart-empty {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 70px 30px;
+  text-align: center;
+}
+
+.tck-cart-empty-icon {
+  font-size: 70px;
+  margin-bottom: 20px;
+}
+
+.tck-cart-empty h2 {
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 30px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--ink);
+}
+
+.tck-cart-empty p {
+  color: var(--muted);
+  line-height: 1.7;
+  margin-bottom: 28px;
+  font-size: 15px;
+}
+
+.tck-cart-empty-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ink);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 26px;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.tck-cart-empty-cta:hover {
+  background: var(--accent);
+}
 
         .tck-cart-list {
           display: flex;
@@ -336,121 +362,147 @@ export default function Cart() {
         }
       `}</style>
 
-
-      <div className="tck-cart-wrap">
-        <div className="tck-cart-head">
-          <h1 className="tck-cart-title">ตะกร้าสินค้า</h1>
-          <span className="tck-cart-count">{items.length} รายการ</span>
-        </div>
-
-        {error && <div className="tck-cart-error">{error}</div>}
-
-        {loading ? (
-          <div className="tck-cart-loading">กำลังโหลด...</div>
-        ) : items.length === 0 ? (
-          <div className="tck-cart-empty">
-            <p>ตะกร้าของคุณยังว่างอยู่</p>
-            <button type="button" className="tck-cart-empty-cta" onClick={() => navigate("/")}>
-              เลือกซื้อสินค้า →
-            </button>
+        <div className="tck-cart-wrap">
+          <div className="tck-cart-head">
+            <h1 className="tck-cart-title">ตะกร้าสินค้า</h1>
+            <span className="tck-cart-count">{items.length} รายการ</span>
           </div>
-        ) : (
-          <>
-            <div className="tck-cart-list">
-              {items.map((item) => {
-                const product = productsById[item.product_id];
-                const name = product?.product_name || `สินค้า #${item.product_id}`;
-                const image = product?.image
-                  ? `${API_URL}${product.image}`
-                  : "https://placehold.co/150x150?text=No+Image";
-                const isUpdating = updatingId === item.cart_item_id;
-                const atMaxStock = item.stock != null && item.quantity >= item.stock;
 
-                return (
-                  <div className="tck-cart-item" key={item.cart_item_id}>
-                    <div className="tck-cart-item-media">
-                      <img src={image} alt={name} />
-                    </div>
+          {error && <div className="tck-cart-error">{error}</div>}
 
-                    <div className="tck-cart-item-info">
-                      <h3 className="tck-cart-item-name">{name}</h3>
-                      <span className="tck-cart-item-price">
-                        ฿{Number(item.price || 0).toLocaleString()} / ชิ้น
-                      </span>
-                      {item.status !== "ACTIVE" && (
-                        <div className="tck-cart-item-stock-warn">
-                          สินค้านี้ไม่พร้อมจำหน่ายแล้ว
-                        </div>
-                      )}
-                    </div>
+          {loading ? (
+            <div className="tck-cart-loading">กำลังโหลด...</div>
+          ) : items.length === 0 ? (
+            <div className="tck-cart-empty">
+              <div className="tck-cart-empty-icon">📦</div>
 
-                    <div className="tck-qty">
-                      <button
-                        type="button"
-                        disabled={isUpdating || item.quantity <= 1}
-                        onClick={() => handleQuantityChange(item, item.quantity - 1)}
-                      >
-                        −
-                      </button>
-                      <span>{item.quantity}</span>
-                      <button
-                        type="button"
-                        disabled={isUpdating || atMaxStock}
-                        onClick={() => handleQuantityChange(item, item.quantity + 1)}
-                      >
-                        +
-                      </button>
-                    </div>
+              <h2>ตะกร้าสินค้าว่าง</h2>
 
-                    <div className="tck-cart-item-subtotal">
-                      ฿{Number(item.subtotal || 0).toLocaleString()}
-                    </div>
+              <p>
+                คุณยังไม่มีสินค้าในตะกร้า
+                <br />
+                เลือกสินค้าที่ต้องการแล้วกลับมาชำระเงินได้ทุกเมื่อ
+              </p>
 
-                    <button
-                      type="button"
-                      className="tck-cart-item-remove"
-                      disabled={isUpdating}
-                      onClick={() => handleRemove(item)}
-                      aria-label="ลบสินค้า"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                );
-              })}
+              <button
+                type="button"
+                className="tck-cart-empty-cta"
+                onClick={() => navigate("/products")}
+              >
+                เลือกซื้อสินค้า
+              </button>
             </div>
+          ) : (
+            <>
+              <div className="tck-cart-list">
+                {items.map((item) => {
+                  const product = productsById[item.product_id];
+                  const name =
+                    product?.product_name || `สินค้า #${item.product_id}`;
+                  const image = product?.image
+                    ? `${API_URL}${product.image}`
+                    : "https://placehold.co/150x150?text=No+Image";
+                  const isUpdating = updatingId === item.cart_item_id;
+                  const atMaxStock =
+                    item.stock != null && item.quantity >= item.stock;
 
-            <div className="tck-cart-summary">
-              <div>
-                <div className="tck-cart-count">ยอดรวม</div>
-                <div className="tck-cart-summary-total">
-                  ฿{Number(total || 0).toLocaleString()}
+                  return (
+                    <div className="tck-cart-item" key={item.cart_item_id}>
+                      <div className="tck-cart-item-media">
+                        <img src={image} alt={name} />
+                      </div>
+
+                      <div className="tck-cart-item-info">
+                        <h3 className="tck-cart-item-name">{name}</h3>
+                        <span className="tck-cart-item-price">
+                          ฿{Number(item.price || 0).toLocaleString()} / ชิ้น
+                        </span>
+                        {item.stock <= 0 ? (
+                          <div className="tck-cart-item-stock-warn">
+                            ❌ สินค้าหมด
+                          </div>
+                        ) : item.status !== "ACTIVE" ? (
+                          <div className="tck-cart-item-stock-warn">
+                            ⚠️ สินค้านี้ไม่พร้อมจำหน่าย
+                          </div>
+                        ) : item.quantity >= item.stock ? (
+                          <div className="tck-cart-item-stock-warn">
+                            เหลือสินค้า {item.stock} ชิ้น
+                          </div>
+                        ) : null}
+                      </div>
+
+                      <div className="tck-qty">
+                        <button
+                          type="button"
+                          disabled={isUpdating || item.quantity <= 1}
+                          onClick={() =>
+                            handleQuantityChange(item, item.quantity - 1)
+                          }
+                        >
+                          −
+                        </button>
+                        <span>{item.quantity}</span>
+                        <button
+                          type="button"
+                          disabled={isUpdating || atMaxStock}
+                          onClick={() =>
+                            handleQuantityChange(item, item.quantity + 1)
+                          }
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      <div className="tck-cart-item-subtotal">
+                        ฿{Number(item.subtotal || 0).toLocaleString()}
+                      </div>
+
+                      <button
+                        type="button"
+                        className="tck-cart-item-remove"
+                        disabled={isUpdating}
+                        onClick={() => handleRemove(item)}
+                        aria-label="ลบสินค้า"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="tck-cart-summary">
+                <div>
+                  <div className="tck-cart-count">ยอดรวม</div>
+                  <div className="tck-cart-summary-total">
+                    ฿{Number(total || 0).toLocaleString()}
+                  </div>
+                </div>
+
+                <div className="tck-cart-summary-actions">
+                  <button
+                    type="button"
+                    className="tck-cart-clear"
+                    disabled={updatingId === "clear"}
+                    onClick={handleClear}
+                  >
+                    ล้างตะกร้า
+                  </button>
+                  <button
+                    type="button"
+                    className="tck-cart-checkout"
+                    disabled={items.length === 0}
+                    onClick={() => navigate("/checkout")}
+                  >
+                    ดำเนินการชำระเงิน →
+                  </button>
                 </div>
               </div>
-
-              <div className="tck-cart-summary-actions">
-                <button
-                  type="button"
-                  className="tck-cart-clear"
-                  disabled={updatingId === "clear"}
-                  onClick={handleClear}
-                >
-                  ล้างตะกร้า
-                </button>
-                <button
-                  type="button"
-                  className="tck-cart-checkout"
-                  disabled={items.length === 0}
-                  onClick={() => navigate("/checkout")}
-                >
-                  ดำเนินการชำระเงิน →
-                </button>
-              </div>
-            </div>
-          </>
-        )}
+            </>
+          )}
+        </div>
       </div>
-    </div>
     </CustomerLayout>
   );
 }

@@ -96,14 +96,16 @@ const addCartItem = async (req, res) => {
     }
 
     // Add item to cart
-    await CartModel.addCartItem(cart.cart_id, product_id, quantity, product.price);
-
-    const updatedCart = await CartModel.getCartByUserId(userId);
+    await CartModel.addCartItem(
+      cart.cart_id,
+      product_id,
+      quantity,
+      product.price,
+    );
 
     res.status(201).json({
       success: true,
       message: "Item added to cart",
-      data: updatedCart,
     });
   } catch (error) {
     console.error(error);
