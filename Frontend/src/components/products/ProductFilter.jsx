@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Col, Form, Row } from "react-bootstrap";
+import { Col, Form, InputGroup, Row } from "react-bootstrap";
+import { Search } from "react-bootstrap-icons";
 import brandService from "../../services/brandService";
 
 export default function ProductFilter({
@@ -51,12 +52,17 @@ export default function ProductFilter({
   return (
     <Row className="mb-4 g-3">
       <Col md={4}>
-        <Form.Control
-          type="text"
-          placeholder="🔍 Search Product..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+        <InputGroup>
+          <InputGroup.Text>
+            <Search />
+          </InputGroup.Text>
+          <Form.Control
+            type="text"
+            placeholder="Search Product..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </InputGroup>
       </Col>
 
       <Col md={2}>

@@ -1,8 +1,17 @@
 import { useEffect, useState } from "react";
 import { Badge, Button, Modal, Table, Form } from "react-bootstrap";
+import { CircleFill } from "react-bootstrap-icons";
 import Swal from "sweetalert2";
 
 import orderService from "../../services/orderService";
+
+const STATUS_COLORS = {
+  PENDING: "#626c7a",
+  PAID: "#00895a",
+  SHIPPED: "#2b59ff",
+  DELIVERED: "#00895a",
+  CANCELLED: "#e5484d",
+};
 
 export default function OrderDetailModal({ show, onHide, order, onSuccess }) {
   const [detail, setDetail] = useState(null);
@@ -125,20 +134,27 @@ export default function OrderDetailModal({ show, onHide, order, onSuccess }) {
         <Form.Group>
           <Form.Label>Update Status</Form.Label>
 
-          <Form.Select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-          >
-            <option value="PENDING">PENDING</option>
+          <div className="d-flex align-items-center gap-2">
+            <CircleFill
+              size={10}
+              style={{ color: STATUS_COLORS[status] }}
+            />
 
-            <option value="PAID">PAID</option>
+            <Form.Select
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option value="PENDING">Pending</option>
 
-            <option value="SHIPPED">SHIPPED</option>
+              <option value="PAID">Paid</option>
 
-            <option value="DELIVERED">DELIVERED</option>
+              <option value="SHIPPED">Shipped</option>
 
-            <option value="CANCELLED">CANCELLED</option>
-          </Form.Select>
+              <option value="DELIVERED">Delivered</option>
+
+              <option value="CANCELLED">Cancelled</option>
+            </Form.Select>
+          </div>
         </Form.Group>
       </Modal.Body>
 

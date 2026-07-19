@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { BoxSeam, ExclamationTriangleFill, XCircleFill, XLg } from "react-bootstrap-icons";
 import cartService from "../services/cartService";
 import productService from "../services/productService";
 import CustomerLayout from "../components/layout/CustomerLayout";
@@ -374,7 +375,9 @@ export default function Cart() {
             <div className="tck-cart-loading">กำลังโหลด...</div>
           ) : items.length === 0 ? (
             <div className="tck-cart-empty">
-              <div className="tck-cart-empty-icon">📦</div>
+              <div className="tck-cart-empty-icon">
+                <BoxSeam size={70} />
+              </div>
 
               <h2>ตะกร้าสินค้าว่าง</h2>
 
@@ -419,11 +422,13 @@ export default function Cart() {
                         </span>
                         {item.stock <= 0 ? (
                           <div className="tck-cart-item-stock-warn">
-                            ❌ สินค้าหมด
+                            <XCircleFill className="me-1" />
+                            สินค้าหมด
                           </div>
                         ) : item.status !== "ACTIVE" ? (
                           <div className="tck-cart-item-stock-warn">
-                            ⚠️ สินค้านี้ไม่พร้อมจำหน่าย
+                            <ExclamationTriangleFill className="me-1" />
+                            สินค้านี้ไม่พร้อมจำหน่าย
                           </div>
                         ) : item.quantity >= item.stock ? (
                           <div className="tck-cart-item-stock-warn">
@@ -465,7 +470,7 @@ export default function Cart() {
                         onClick={() => handleRemove(item)}
                         aria-label="ลบสินค้า"
                       >
-                        ✕
+                        <XLg />
                       </button>
                     </div>
                   );

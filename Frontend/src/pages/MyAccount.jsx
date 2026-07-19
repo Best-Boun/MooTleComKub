@@ -5,7 +5,6 @@ import {
   FiUser,
   FiEdit2,
   FiMapPin,
-  FiPackage,
   FiLogOut,
 } from "react-icons/fi";
 import authService from "../services/authService";
@@ -280,12 +279,13 @@ export default function MyAccount() {
 
           background: var(--bg);
           min-height: 100%;
+          padding-top: 48px;
           padding-bottom: 48px;
         }
 
         .tcka-wrap {
           max-width: 1100px;
-          margin: 24px auto 0;
+          margin: 48px auto 0;
           padding: 0 24px;
           display: grid;
           grid-template-columns: 260px 1fr;
@@ -525,17 +525,6 @@ export default function MyAccount() {
               </button>
             );
           })}
-
-          <hr className="tcka-nav-divider" />
-
-          <button
-            type="button"
-            className="tcka-nav-item"
-            onClick={() => navigate("/orders")}
-          >
-            <FiPackage size={16} />
-            รายการคำสั่งซื้อ
-          </button>
 
           <hr className="tcka-nav-divider" />
 

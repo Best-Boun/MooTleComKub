@@ -9,6 +9,7 @@ import {
   Spinner,
   Button,
 } from "react-bootstrap";
+import { PersonFill, BarChartFill, BoxSeamFill } from "react-bootstrap-icons";
 
 import customerService from "../../services/customerService";
 
@@ -77,7 +78,10 @@ export default function CustomerDetail() {
         <Col lg={8}>
           <Card className="shadow-sm border-0 h-100">
             <Card.Body>
-              <h4 className="fw-bold mb-4">👤 Customer Information</h4>
+              <h4 className="fw-bold mb-4">
+                <PersonFill className="me-2" />
+                Customer Information
+              </h4>
 
               <Row className="g-3">
                 <Col md={6}>
@@ -133,7 +137,10 @@ export default function CustomerDetail() {
         <Col lg={4}>
           <Card className="shadow-sm border-0 h-100">
             <Card.Body>
-              <h4 className="fw-bold mb-4">📊 Statistics</h4>
+              <h4 className="fw-bold mb-4">
+                <BarChartFill className="me-2" />
+                Statistics
+              </h4>
 
               <div className="mb-4">
                 <h6>Total Orders</h6>
@@ -160,7 +167,10 @@ export default function CustomerDetail() {
         <Col>
           <Card className="shadow-sm border-0">
             <Card.Body>
-              <h4 className="fw-bold mb-3">📦 Recent Orders</h4>
+              <h4 className="fw-bold mb-3">
+                <BoxSeamFill className="me-2" />
+                Recent Orders
+              </h4>
 
               <Table striped hover responsive>
                 <thead>

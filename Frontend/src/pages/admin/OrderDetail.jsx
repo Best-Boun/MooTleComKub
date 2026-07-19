@@ -9,6 +9,14 @@ import {
   Spinner,
   Button,
 } from "react-bootstrap";
+import {
+  BoxSeamFill,
+  CreditCardFill,
+  PhoneFill,
+  Bank,
+  TruckFront,
+  CartFill,
+} from "react-bootstrap-icons";
 
 import orderService from "../../services/orderService";
 
@@ -65,7 +73,10 @@ export default function OrderDetail() {
         <Col lg={8}>
           <Card className="shadow-sm border-0 h-100">
             <Card.Body>
-              <h4 className="fw-bold mb-4">📦 Order Information</h4>
+              <h4 className="fw-bold mb-4">
+                <BoxSeamFill className="me-2" />
+                Order Information
+              </h4>
 
               <Row className="g-3">
                 <Col md={6}>
@@ -107,11 +118,20 @@ export default function OrderDetail() {
                   <p>
                     {order.payment_method ? (
                       order.payment_method === "CREDIT_CARD" ? (
-                        "💳 Credit Card"
+                        <>
+                          <CreditCardFill className="me-2" />
+                          Credit Card
+                        </>
                       ) : order.payment_method === "PROMPTPAY" ? (
-                        "📱 PromptPay"
+                        <>
+                          <PhoneFill className="me-2" />
+                          PromptPay
+                        </>
                       ) : order.payment_method === "BANK_TRANSFER" ? (
-                        "🏦 Bank Transfer"
+                        <>
+                          <Bank className="me-2" />
+                          Bank Transfer
+                        </>
                       ) : (
                         order.payment_method
                       )
@@ -158,7 +178,10 @@ export default function OrderDetail() {
         <Col lg={4}>
           <Card className="shadow-sm border-0 h-100">
             <Card.Body>
-              <h4 className="fw-bold mb-4">🚚 Shipping</h4>
+              <h4 className="fw-bold mb-4">
+                <TruckFront className="me-2" />
+                Shipping
+              </h4>
 
               <p>
                 <strong>Name</strong>
@@ -187,7 +210,10 @@ export default function OrderDetail() {
       </Row>
       <Card className="shadow-sm border-0">
         <Card.Body>
-          <h4 className="fw-bold mb-3">🛒 Order Items</h4>
+          <h4 className="fw-bold mb-3">
+            <CartFill className="me-2" />
+            Order Items
+          </h4>
 
           <Table striped hover responsive>
             <thead className="table-light">

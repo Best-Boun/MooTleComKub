@@ -1,5 +1,21 @@
 import { Badge, Button, Form, Table } from "react-bootstrap";
-import { LockFill } from "react-bootstrap-icons";
+import { LockFill, CircleFill } from "react-bootstrap-icons";
+
+const STATUS_COLORS = {
+  PENDING: "#626c7a",
+  PAID: "#00895a",
+  SHIPPED: "#2b59ff",
+  DELIVERED: "#00895a",
+  CANCELLED: "#e5484d",
+};
+
+const STATUS_LABELS = {
+  PENDING: "Pending",
+  PAID: "Paid",
+  SHIPPED: "Shipped",
+  DELIVERED: "Delivered",
+  CANCELLED: "Cancelled",
+};
 
 export default function OrderTable({
   orders,
@@ -48,29 +64,36 @@ export default function OrderTable({
                     className="d-flex justify-content-between align-items-center border rounded px-2 py-1 bg-light"
                     style={{ height: "31px" }}
                   >
-                    <span>
-                      {order.order_status === "DELIVERED"
-                        ? "🟢 Delivered"
-                        : order.order_status === "CANCELLED"
-                          ? "🔴 Cancelled"
-                          : order.order_status}
+                    <span className="d-flex align-items-center gap-2">
+                      <CircleFill
+                        size={10}
+                        style={{ color: STATUS_COLORS[order.order_status] }}
+                      />
+                      {STATUS_LABELS[order.order_status] || order.order_status}
                     </span>
 
                     <LockFill className="text-secondary" title="Locked" />
                   </div>
                 ) : (
-                  <Form.Select
-                    size="sm"
-                    value={order.order_status}
-                    onChange={(e) =>
-                      onUpdateStatus(order.order_id, e.target.value)
-                    }
-                  >
-                    <option value="PENDING">🟡 Pending</option>
-                    <option value="PAID">🔵 Paid</option>
-                    <option value="DELIVERED">🟢 Delivered</option>
-                    <option value="CANCELLED">🔴 Cancelled</option>
-                  </Form.Select>
+                  <div className="d-flex align-items-center gap-2">
+                    <CircleFill
+                      size={10}
+                      style={{ color: STATUS_COLORS[order.order_status] }}
+                    />
+                    <Form.Select
+                      size="sm"
+                      value={order.order_status}
+                      onChange={(e) =>
+                        onUpdateStatus(order.order_id, e.target.value)
+                      }
+                    >
+                      <option value="PENDING">Pending</option>
+                      <option value="PAID">Paid</option>
+                      <option value="SHIPPED">Shipped</option>
+                      <option value="DELIVERED">Delivered</option>
+                      <option value="CANCELLED">Cancelled</option>
+                    </Form.Select>
+                  </div>
                 )}
               </td>
 
