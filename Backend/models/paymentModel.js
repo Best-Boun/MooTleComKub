@@ -73,13 +73,21 @@ class PaymentModel {
 
       // Verify order exists and belongs to user
       const [[order]] = await connection.query(
-        `SELECT order_id, user_id, total_amount FROM orders WHERE order_id = ? AND user_id = ? LIMIT 1`,
+        `SELECT order_id, user_id, total_amount, order_status FROM orders WHERE order_id = ? AND user_id = ? LIMIT 1`,
         [orderId, userId],
       );
 
       if (!order) {
         await connection.rollback();
         return { success: false, error: "Order not found or does not belong to user" };
+      }
+
+      if (order.order_status !== "PENDING") {
+        await connection.rollback();
+        return {
+          success: false,
+          error: "ไม่สามารถชำระเงินสำหรับออเดอร์นี้ได้ เนื่องจากสถานะไม่ใช่ Pending",
+        };
       }
 
       // Check if payment already exists for this order
@@ -108,6 +116,27 @@ class PaymentModel {
           `UPDATE orders SET order_status = 'PAID' WHERE order_id = ?`,
           [orderId],
         );
+
+        // หักสต็อกสินค้าจริง ณ ตอนจ่ายเงินสำเร็จ (atomic กันขายเกินสต็อก/race condition)
+        const [orderItems] = await connection.query(
+          `SELECT product_id, quantity FROM order_items WHERE order_id = ?`,
+          [orderId],
+        );
+
+        for (const item of orderItems) {
+          const [stockResult] = await connection.query(
+            `UPDATE products SET stock = stock - ? WHERE product_id = ? AND stock >= ?`,
+            [item.quantity, item.product_id, item.quantity],
+          );
+
+          if (stockResult.affectedRows === 0) {
+            await connection.rollback();
+            return {
+              success: false,
+              error: `สินค้า ${item.product_id} มีไม่เพียงพอ`,
+            };
+          }
+        }
 
         const [[cart]] = await connection.query(
           `SELECT cart_id FROM shopping_carts WHERE user_id = ? LIMIT 1`,

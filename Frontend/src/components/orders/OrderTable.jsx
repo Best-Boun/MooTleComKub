@@ -17,6 +17,13 @@ const STATUS_LABELS = {
   CANCELLED: "Cancelled",
 };
 
+// PAID ไม่อยู่ในตัวเลือกของ Admin เพราะเกิดได้จาก createPayment เท่านั้น
+const ALLOWED_TRANSITIONS = {
+  PENDING: ["CANCELLED"],
+  PAID: ["SHIPPED", "CANCELLED"],
+  SHIPPED: ["DELIVERED", "CANCELLED"],
+};
+
 export default function OrderTable({
   orders,
   onView,
@@ -83,15 +90,21 @@ export default function OrderTable({
                     <Form.Select
                       size="sm"
                       value={order.order_status}
-                      onChange={(e) =>
-                        onUpdateStatus(order.order_id, e.target.value)
-                      }
+                      onChange={(e) => {
+                        if (e.target.value === order.order_status) return;
+                        onUpdateStatus(order.order_id, e.target.value);
+                      }}
                     >
-                      <option value="PENDING">Pending</option>
-                      <option value="PAID">Paid</option>
-                      <option value="SHIPPED">Shipped</option>
-                      <option value="DELIVERED">Delivered</option>
-                      <option value="CANCELLED">Cancelled</option>
+                      <option value={order.order_status}>
+                        {STATUS_LABELS[order.order_status]}
+                      </option>
+                      {(ALLOWED_TRANSITIONS[order.order_status] || []).map(
+                        (next) => (
+                          <option key={next} value={next}>
+                            {STATUS_LABELS[next]}
+                          </option>
+                        ),
+                      )}
                     </Form.Select>
                   </div>
                 )}

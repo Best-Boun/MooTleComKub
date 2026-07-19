@@ -83,6 +83,44 @@ WHERE o.order_id = ?
     return result;
   }
 
+  // ดึงสถานะปัจจุบันของออเดอร์เดียว (ใช้ตรวจสอบก่อน validate transition)
+  static async getOrderStatusById(id) {
+    const [rows] = await db.query(
+      `SELECT order_status FROM orders WHERE order_id = ? LIMIT 1`,
+      [id],
+    );
+
+    return rows[0]?.order_status || null;
+  }
+
+  // คืนสต็อกสินค้าทั้งหมดของออเดอร์ (ใช้ตอนยกเลิกออเดอร์ที่เคยหักสต็อกไปแล้วตอน PAID)
+  static async restoreStockForOrder(orderId) {
+    const connection = await db.getConnection();
+
+    try {
+      await connection.beginTransaction();
+
+      const [items] = await connection.query(
+        `SELECT product_id, quantity FROM order_items WHERE order_id = ?`,
+        [orderId],
+      );
+
+      for (const item of items) {
+        await connection.query(
+          `UPDATE products SET stock = stock + ? WHERE product_id = ?`,
+          [item.quantity, item.product_id],
+        );
+      }
+
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  }
+
   // ลบออเดอร์
   static async deleteOrder(id) {
     // ลบรายการสินค้าในออเดอร์ก่อน

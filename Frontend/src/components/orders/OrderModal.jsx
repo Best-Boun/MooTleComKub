@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Badge, Button, Modal, Table, Form } from "react-bootstrap";
-import { CircleFill } from "react-bootstrap-icons";
+import { CircleFill, LockFill } from "react-bootstrap-icons";
 import Swal from "sweetalert2";
 
 import orderService from "../../services/orderService";
@@ -11,6 +11,21 @@ const STATUS_COLORS = {
   SHIPPED: "#2b59ff",
   DELIVERED: "#00895a",
   CANCELLED: "#e5484d",
+};
+
+const STATUS_LABELS = {
+  PENDING: "Pending",
+  PAID: "Paid",
+  SHIPPED: "Shipped",
+  DELIVERED: "Delivered",
+  CANCELLED: "Cancelled",
+};
+
+// PAID ไม่อยู่ในตัวเลือกของ Admin เพราะเกิดได้จาก createPayment เท่านั้น
+const ALLOWED_TRANSITIONS = {
+  PENDING: ["CANCELLED"],
+  PAID: ["SHIPPED", "CANCELLED"],
+  SHIPPED: ["DELIVERED", "CANCELLED"],
 };
 
 export default function OrderDetailModal({ show, onHide, order, onSuccess }) {
@@ -134,27 +149,46 @@ export default function OrderDetailModal({ show, onHide, order, onSuccess }) {
         <Form.Group>
           <Form.Label>Update Status</Form.Label>
 
-          <div className="d-flex align-items-center gap-2">
-            <CircleFill
-              size={10}
-              style={{ color: STATUS_COLORS[status] }}
-            />
-
-            <Form.Select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
+          {orderData.order_status === "DELIVERED" ||
+          orderData.order_status === "CANCELLED" ? (
+            <div
+              className="d-flex justify-content-between align-items-center border rounded px-2 py-1 bg-light"
+              style={{ height: "38px" }}
             >
-              <option value="PENDING">Pending</option>
+              <span className="d-flex align-items-center gap-2">
+                <CircleFill
+                  size={10}
+                  style={{ color: STATUS_COLORS[orderData.order_status] }}
+                />
+                {STATUS_LABELS[orderData.order_status]}
+              </span>
 
-              <option value="PAID">Paid</option>
+              <LockFill className="text-secondary" title="Locked" />
+            </div>
+          ) : (
+            <div className="d-flex align-items-center gap-2">
+              <CircleFill
+                size={10}
+                style={{ color: STATUS_COLORS[status] }}
+              />
 
-              <option value="SHIPPED">Shipped</option>
-
-              <option value="DELIVERED">Delivered</option>
-
-              <option value="CANCELLED">Cancelled</option>
-            </Form.Select>
-          </div>
+              <Form.Select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+              >
+                <option value={orderData.order_status}>
+                  {STATUS_LABELS[orderData.order_status]}
+                </option>
+                {(ALLOWED_TRANSITIONS[orderData.order_status] || []).map(
+                  (next) => (
+                    <option key={next} value={next}>
+                      {STATUS_LABELS[next]}
+                    </option>
+                  ),
+                )}
+              </Form.Select>
+            </div>
+          )}
         </Form.Group>
       </Modal.Body>
 
@@ -163,9 +197,12 @@ export default function OrderDetailModal({ show, onHide, order, onSuccess }) {
           Close
         </Button>
 
-        <Button variant="primary" onClick={handleUpdateStatus}>
-          Update Status
-        </Button>
+        {orderData.order_status !== "DELIVERED" &&
+          orderData.order_status !== "CANCELLED" && (
+            <Button variant="primary" onClick={handleUpdateStatus}>
+              Update Status
+            </Button>
+          )}
       </Modal.Footer>
     </Modal>
   );

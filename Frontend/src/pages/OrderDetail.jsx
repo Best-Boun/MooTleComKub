@@ -1,8 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import orderService from "../services/orderService";
+import paymentService from "../services/paymentService";
 import CustomerLayout from "../components/layout/CustomerLayout";
 import "../styles/tckTheme.css";
+
+const PAYMENT_METHODS = [
+  { value: "PROMPTPAY", label: "PromptPay", desc: "สแกน QR เพื่อชำระเงินทันที" },
+  { value: "CREDIT_CARD", label: "บัตรเครดิต/เดบิต", desc: "Visa, Mastercard, JCB" },
+  { value: "BANK_TRANSFER", label: "โอนผ่านธนาคาร", desc: "โอนเข้าบัญชีบริษัทโดยตรง" },
+];
 
 const STATUS_LABEL = {
   PENDING: "รอดำเนินการ",
@@ -88,50 +95,70 @@ export default function OrderDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    let isMounted = true;
+  const [showRetryPayment, setShowRetryPayment] = useState(false);
+  const [retryPaymentMethod, setRetryPaymentMethod] = useState("PROMPTPAY");
+  const [retrySubmitting, setRetrySubmitting] = useState(false);
+  const [retryError, setRetryError] = useState("");
 
-    const fetchOrder = async () => {
-      try {
-        setLoading(true);
-        setError("");
+  const fetchOrder = async ({ silent } = {}) => {
+    try {
+      if (!silent) setLoading(true);
+      setError("");
 
-        const res = await orderService.getOrderById(id);
+      const res = await orderService.getOrderById(id);
 
-        if (!isMounted) return;
-
-        if (!res?.success || !res?.data?.order) {
-          setError("ไม่พบคำสั่งซื้อนี้");
-          return;
-        }
-
-        const storedUser = localStorage.getItem("user");
-        const currentUser = storedUser ? JSON.parse(storedUser) : null;
-
-        if (currentUser && Number(res.data.order.user_id) !== Number(currentUser.user_id)) {
-          setError("คุณไม่มีสิทธิ์เข้าถึงคำสั่งซื้อนี้");
-          return;
-        }
-
-        setOrder(res.data.order);
-        setItems(Array.isArray(res.data.items) ? res.data.items : []);
-      } catch (err) {
-        console.error(err);
-        if (!isMounted) return;
-        setError(
-          err.response?.data?.message || "ไม่สามารถโหลดคำสั่งซื้อนี้ได้ กรุณาลองใหม่อีกครั้ง",
-        );
-      } finally {
-        if (isMounted) setLoading(false);
+      if (!res?.success || !res?.data?.order) {
+        setError("ไม่พบคำสั่งซื้อนี้");
+        return;
       }
-    };
 
+      const storedUser = localStorage.getItem("user");
+      const currentUser = storedUser ? JSON.parse(storedUser) : null;
+
+      if (currentUser && Number(res.data.order.user_id) !== Number(currentUser.user_id)) {
+        setError("คุณไม่มีสิทธิ์เข้าถึงคำสั่งซื้อนี้");
+        return;
+      }
+
+      setOrder(res.data.order);
+      setItems(Array.isArray(res.data.items) ? res.data.items : []);
+    } catch (err) {
+      console.error(err);
+      setError(
+        err.response?.data?.message || "ไม่สามารถโหลดคำสั่งซื้อนี้ได้ กรุณาลองใหม่อีกครั้ง",
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchOrder();
-
-    return () => {
-      isMounted = false;
-    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  const handleRetryPayment = async () => {
+    setRetrySubmitting(true);
+    setRetryError("");
+
+    try {
+      const res = await paymentService.createPayment(order.order_id, retryPaymentMethod);
+
+      if (!res?.success) {
+        throw new Error(res?.message || "ชำระเงินไม่สำเร็จ");
+      }
+
+      setShowRetryPayment(false);
+      await fetchOrder({ silent: true });
+    } catch (err) {
+      console.error(err);
+      setRetryError(
+        err.response?.data?.message || err.message || "ชำระเงินไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
+      );
+    } finally {
+      setRetrySubmitting(false);
+    }
+  };
 
   return (
     <CustomerLayout>
@@ -326,6 +353,75 @@ export default function OrderDetail() {
           font-size: 14px;
           color: var(--danger);
         }
+
+        .tck-retry-payment-card {
+          margin-top: 18px;
+          padding-top: 18px;
+          border-top: 1px solid var(--line);
+        }
+        .tck-retry-payment-btn {
+          width: 100%;
+          background: var(--accent);
+          color: #fff;
+          border: none;
+          font-weight: 600;
+          font-size: 14.5px;
+          padding: 12px 16px;
+          border-radius: 10px;
+          cursor: pointer;
+        }
+        .tck-retry-payment-btn:hover { background: var(--accent-dark, var(--accent)); }
+        .tck-pay-list {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          margin-top: 4px;
+        }
+        .tck-pay-card {
+          border: 1px solid var(--line);
+          border-radius: 12px;
+          padding: 14px;
+          cursor: pointer;
+          display: flex;
+          gap: 12px;
+          align-items: center;
+        }
+        .tck-pay-card.selected {
+          border-color: var(--accent);
+          background: #F3F6FF;
+        }
+        .tck-pay-name {
+          font-family: 'Space Grotesk', sans-serif;
+          font-weight: 600;
+          font-size: 14.5px;
+        }
+        .tck-pay-desc {
+          font-size: 13px;
+          color: var(--muted);
+        }
+        .tck-retry-confirm-btn {
+          width: 100%;
+          margin-top: 12px;
+          background: var(--ink);
+          color: #fff;
+          border: none;
+          font-weight: 600;
+          font-size: 14.5px;
+          padding: 12px 16px;
+          border-radius: 10px;
+          cursor: pointer;
+        }
+        .tck-retry-confirm-btn:hover { background: var(--accent); }
+        .tck-retry-confirm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .tck-retry-error {
+          background: #FDEDEC;
+          border: 1px solid #F5C6C0;
+          color: var(--danger);
+          padding: 10px 14px;
+          border-radius: 10px;
+          font-size: 13.5px;
+          margin-top: 12px;
+        }
       `}</style>
 
       <div className="tck-order-detail-head">
@@ -382,6 +478,56 @@ export default function OrderDetail() {
                   ฿{Number(order?.total_amount || 0).toLocaleString()}
                 </span>
               </div>
+
+              {order?.order_status === "PENDING" && (
+                <div className="tck-retry-payment-card">
+                  {!showRetryPayment ? (
+                    <button
+                      type="button"
+                      className="tck-retry-payment-btn"
+                      onClick={() => {
+                        setRetryError("");
+                        setShowRetryPayment(true);
+                      }}
+                    >
+                      ลองชำระเงินอีกครั้ง
+                    </button>
+                  ) : (
+                    <>
+                      <div className="tck-pay-list">
+                        {PAYMENT_METHODS.map((method) => (
+                          <label
+                            key={method.value}
+                            className={`tck-pay-card${retryPaymentMethod === method.value ? " selected" : ""}`}
+                          >
+                            <input
+                              type="radio"
+                              name="retry_payment_method"
+                              checked={retryPaymentMethod === method.value}
+                              onChange={() => setRetryPaymentMethod(method.value)}
+                            />
+                            <div>
+                              <div className="tck-pay-name">{method.label}</div>
+                              <div className="tck-pay-desc">{method.desc}</div>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+
+                      {retryError && <div className="tck-retry-error">{retryError}</div>}
+
+                      <button
+                        type="button"
+                        className="tck-retry-confirm-btn"
+                        disabled={retrySubmitting}
+                        onClick={handleRetryPayment}
+                      >
+                        {retrySubmitting ? "กำลังดำเนินการ..." : "ยืนยันการชำระเงิน"}
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

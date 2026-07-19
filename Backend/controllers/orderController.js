@@ -1,5 +1,14 @@
 const OrderModel = require("../models/orderModel");
 
+// กติกาการเปลี่ยนสถานะ: PAID เกิดได้จาก createPayment เท่านั้น ไม่ใช่ Admin กดเอง
+const ALLOWED_TRANSITIONS = {
+  PENDING: ["CANCELLED"],
+  PAID: ["SHIPPED", "CANCELLED"],
+  SHIPPED: ["DELIVERED", "CANCELLED"],
+  DELIVERED: [],
+  CANCELLED: [],
+};
+
 class OrderController {
   // GET /api/orders
   static async getAllOrders(req, res) {
@@ -62,9 +71,43 @@ class OrderController {
   static async updateOrderStatus(req, res) {
     try {
       const { order_status } = req.body;
+      const orderId = req.params.id;
+
+      if (order_status === "PAID") {
+        return res.status(400).json({
+          success: false,
+          message:
+            "ไม่สามารถเปลี่ยนสถานะเป็น Paid ได้โดยตรง ต้องชำระเงินผ่านระบบเท่านั้น",
+        });
+      }
+
+      const currentStatus = await OrderModel.getOrderStatusById(orderId);
+
+      if (!currentStatus) {
+        return res.status(404).json({
+          success: false,
+          message: "Order not found",
+        });
+      }
+
+      const allowedNext = ALLOWED_TRANSITIONS[currentStatus] || [];
+
+      if (!allowedNext.includes(order_status)) {
+        return res.status(400).json({
+          success: false,
+          message: `ไม่สามารถเปลี่ยนสถานะจาก ${currentStatus} เป็น ${order_status} ได้`,
+        });
+      }
+
+      if (
+        order_status === "CANCELLED" &&
+        (currentStatus === "PAID" || currentStatus === "SHIPPED")
+      ) {
+        await OrderModel.restoreStockForOrder(orderId);
+      }
 
       const result = await OrderModel.updateOrderStatus(
-        req.params.id,
+        orderId,
         order_status,
       );
 
