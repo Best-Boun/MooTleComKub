@@ -1184,8 +1184,8 @@ export default function Homepage() {
     src={logo}
     alt="MOOTLECOMKUB"
     style={{
-      width: "55px",
-      height: "55px",
+      width: "100px",
+      height: "100px",
       objectFit: "contain",
     }}
   />
