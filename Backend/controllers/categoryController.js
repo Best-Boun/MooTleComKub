@@ -74,6 +74,13 @@ const createCategory = async (req, res) => {
   } catch (error) {
     console.error(error);
 
+    if (error.code === "ER_DUP_ENTRY") {
+      return res.status(400).json({
+        success: false,
+        message: "ชื่อหมวดหมู่นี้มีอยู่แล้ว กรุณาใช้ชื่ออื่น",
+      });
+    }
+
     res.status(500).json({
       success: false,
       message: "Server Error",
@@ -106,6 +113,13 @@ const updateCategory = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+
+    if (error.code === "ER_DUP_ENTRY") {
+      return res.status(400).json({
+        success: false,
+        message: "ชื่อหมวดหมู่นี้มีอยู่แล้ว กรุณาใช้ชื่ออื่น",
+      });
+    }
 
     res.status(500).json({
       success: false,
