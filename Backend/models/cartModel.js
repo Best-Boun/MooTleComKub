@@ -14,14 +14,16 @@ class CartModel {
           JSON_ARRAYAGG(
             CASE WHEN ci.cart_item_id IS NOT NULL THEN
               JSON_OBJECT(
-                'cart_item_id', ci.cart_item_id,
-                'product_id', ci.product_id,
-                'quantity', ci.quantity,
-                'subtotal', ci.subtotal,
-                'price', p.price,
-                'stock', p.stock,
-                'status', p.status
-              )
+  'cart_item_id', ci.cart_item_id,
+  'product_id', ci.product_id,
+  'product_name', p.product_name,
+  'image', p.image,
+  'quantity', ci.quantity,
+  'subtotal', ci.subtotal,
+  'price', p.price,
+  'stock', p.stock,
+  'status', p.status
+)
             END
           ),
           JSON_ARRAY()

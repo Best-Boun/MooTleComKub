@@ -21,7 +21,7 @@ export default function Footer() {
         <div className="tck-perk">
           <span className="tck-perk-icon"><FiShield size={22} /></span>
           <div>
-            <div className="tck-perk-title">ประกันศูนย์ทุกชิ้น</div>
+            <div className="tck-perk-title">ประกันใจทุกชิ้น</div>
             <div className="tck-perk-sub">รับประกันตามมาตรฐานผู้ผลิต</div>
           </div>
         </div>

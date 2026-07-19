@@ -985,7 +985,10 @@ export default function Homepage() {
 
           <div className="tck2-nav-actions">
             <Dropdown align="end">
-              <Dropdown.Toggle variant="light" className="border-0 bg-transparent">
+              <Dropdown.Toggle
+                variant="light"
+                className="border-0 bg-transparent"
+              >
                 {user?.first_name || "บัญชีของฉัน"}
               </Dropdown.Toggle>
               <Dropdown.Menu>
@@ -1227,10 +1230,9 @@ export default function Homepage() {
             </div>
             <h1 className="tck2-hero-title">
               ทุกสินค้าที่ใช่ ประกันใจได้ 100%
-
             </h1>
             <p className="tck2-hero-sub">
-              คอมพิวเตอร์ตั้งโต๊ะและโน้ตบุ๊กของแท้ พร้อมประกันศูนย์
+              คอมพิวเตอร์ตั้งโต๊ะและโน้ตบุ๊กของแท้ พร้อมประกันตามใจ
             </p>
 
             <div className="tck2-badges">
@@ -1238,7 +1240,7 @@ export default function Homepage() {
                 <span className="tck2-dot" /> ของแท้ 100%
               </span>
               <span className="tck2-badge">
-                <span className="tck2-dot" /> ประกันศูนย์
+                <span className="tck2-dot" /> ประกันตามใจ
               </span>
               <span className="tck2-badge">
                 <span className="tck2-dot" /> ชำระเงินปลอดภัย
@@ -1271,9 +1273,7 @@ export default function Homepage() {
             </div>
 
             <div className="tck2-grid">
-              {loading && (
-                <div className="tck2-empty">กำลังโหลดสินค้า...</div>
-              )}
+              {loading && <div className="tck2-empty">กำลังโหลดสินค้า...</div>}
 
               {!loading && filteredProducts.length === 0 && (
                 <div className="tck2-empty">ไม่พบสินค้าตามตัวกรองที่เลือก</div>

@@ -19,6 +19,9 @@ export default function Cart() {
         productService.getAllProducts(),
       ]);
 
+      console.log("CART =", cartRes);
+      console.log("PRODUCTS =", productsRes);
+
       setCart(cartRes?.data || null);
 
       const list = Array.isArray(productsRes?.data) ? productsRes.data : [];
@@ -53,15 +56,26 @@ export default function Cart() {
     if (nextQuantity < 1) return;
     if (item.stock != null && nextQuantity > item.stock) return;
 
-    setUpdatingId(item.cart_item_id);
+    // เปลี่ยนจำนวนบนหน้าจอทันที
+    setCart((prev) => ({
+      ...prev,
+      items: prev.items.map((i) =>
+        i.cart_item_id === item.cart_item_id
+          ? {
+              ...i,
+              quantity: nextQuantity,
+              subtotal: nextQuantity * Number(i.price),
+            }
+          : i,
+      ),
+    }));
+
     try {
-      const res = await cartService.updateItem(item.cart_item_id, nextQuantity);
-      setCart(res?.data || null);
+      await cartService.updateItem(item.cart_item_id, nextQuantity);
     } catch (err) {
       console.error(err);
       setError("อัปเดตจำนวนสินค้าไม่สำเร็จ");
-    } finally {
-      setUpdatingId(null);
+      loadCart();
     }
   };
 
@@ -357,11 +371,17 @@ export default function Cart() {
           <>
             <div className="tck-cart-list">
               {items.map((item) => {
-                const product = productsById[item.product_id];
-                const name = product?.product_name || `สินค้า #${item.product_id}`;
-                const image =
-                  product?.image || "https://placehold.co/150x150?text=No+Image";
-                const isUpdating = updatingId === item.cart_item_id;
+                const name = item.product_name;
+
+                
+
+                const image = item.image
+                  ? `http://localhost:5000${item.image}`
+                  : "https://placehold.co/150x150?text=No+Image";
+
+                
+
+                
                 const atMaxStock = item.stock != null && item.quantity >= item.stock;
 
                 return (
@@ -385,16 +405,20 @@ export default function Cart() {
                     <div className="tck-qty">
                       <button
                         type="button"
-                        disabled={isUpdating || item.quantity <= 1}
-                        onClick={() => handleQuantityChange(item, item.quantity - 1)}
+                        disabled={item.quantity <= 1}
+                        onClick={() =>
+                          handleQuantityChange(item, item.quantity - 1)
+                        }
                       >
                         −
                       </button>
                       <span>{item.quantity}</span>
                       <button
                         type="button"
-                        disabled={isUpdating || atMaxStock}
-                        onClick={() => handleQuantityChange(item, item.quantity + 1)}
+                        disabled={atMaxStock}
+                        onClick={() =>
+                          handleQuantityChange(item, item.quantity + 1)
+                        }
                       >
                         +
                       </button>
@@ -407,7 +431,7 @@ export default function Cart() {
                     <button
                       type="button"
                       className="tck-cart-item-remove"
-                      disabled={isUpdating}
+                      disabled={false}
                       onClick={() => handleRemove(item)}
                       aria-label="ลบสินค้า"
                     >
