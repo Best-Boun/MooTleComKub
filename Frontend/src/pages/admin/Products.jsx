@@ -32,6 +32,11 @@ export default function Products() {
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 10;
 
+  // รีเซ็ต currentPage กลับเป็น 1 ทุกครั้งที่ filter เปลี่ยน
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, category, status, brand]);
+
   // โหลดข้อมูลสินค้า
   const fetchProducts = async () => {
     try {
