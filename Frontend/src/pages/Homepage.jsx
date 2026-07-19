@@ -7,6 +7,7 @@ import categoryService from "../services/categoryService";
 import cartService from "../services/cartService";
 import Footer from "../components/layout/Footer";
 
+
 const API_URL = "http://localhost:5000";
 
 const SORT_OPTIONS = [
