@@ -1,0 +1,192 @@
+[33mcommit f49ec0395d1e955a5d2085fecb9a54719316aa14[m
+Author: LAPTOP-MF7LNJNU\UsER <rachapoom.thu@spumail.net>
+Date:   Sun Jul 19 16:12:26 2026 +0700
+
+    UI
+
+[1mdiff --git a/Frontend/src/components/layout/CustomerNavbar.jsx b/Frontend/src/components/layout/CustomerNavbar.jsx[m
+[1mindex b00f313..d7f8c55 100644[m
+[1m--- a/Frontend/src/components/layout/CustomerNavbar.jsx[m
+[1m+++ b/Frontend/src/components/layout/CustomerNavbar.jsx[m
+[36m@@ -1,80 +1,513 @@[m
+[31m-import { Dropdown } from "react-bootstrap";[m
+[32m+[m[32mimport { useEffect, useRef, useState } from "react";[m
+ import { useNavigate } from "react-router-dom";[m
+[32m+[m[32mimport { Dropdown } from "react-bootstrap";[m
+[32m+[m[32mimport { FiSearch, FiShoppingCart } from "react-icons/fi";[m
+[32m+[m[32mimport cartService from "../../services/cartService";[m
+[32m+[m[32mimport productService from "../../services/productService";[m
+[32m+[m
+[32m+[m[32mconst API_URL = "http://localhost:5000";[m
+ [m
+ export default function CustomerNavbar() {[m
+   const navigate = useNavigate();[m
+[32m+[m[32m  const [search, setSearch] = useState("");[m
+[32m+[m[32m  const [cartCount, setCartCount] = useState(0);[m
+[32m+[m[32m  const [cartOpen, setCartOpen] = useState(false);[m
+[32m+[m[32m  const [cartLoading, setCartLoading] = useState(false);[m
+[32m+[m[32m  const [cartItems, setCartItems] = useState([]);[m
+[32m+[m[32m  const [cartTotal, setCartTotal] = useState(0);[m
+[32m+[m[32m  const cartPopupRef = useRef(null);[m
+ [m
+   const user =[m
+     JSON.parse(localStorage.getItem("user")) ||[m
+     JSON.parse(sessionStorage.getItem("user"));[m
+ [m
+[32m+[m[32m  const token = localStorage.getItem("token") || sessionStorage.getItem("token");[m
+[32m+[m
+   const handleLogout = () => {[m
+     localStorage.removeItem("token");[m
+     localStorage.removeItem("user");[m
+[32m+[m[32m    localStorage.removeItem("role");[m
+     sessionStorage.removeItem("token");[m
+     sessionStorage.removeItem("user");[m
+ [m
+     navigate("/login");[m
+   };[m
+ [m
+[32m+[m[32m  const loadCartCount = async () => {[m
+[32m+[m[32m    if (!token) return;[m
+[32m+[m[32m    try {[m
+[32m+[m[32m      const res = await cartService.getCart();[m
+[32m+[m[32m      const items = Array.isArray(res?.data?.items)[m
+[32m+[m[32m        ? res.data.items.filter((item) => item && item.cart_item_id)[m
+[32m+[m[32m        : [];[m
+[32m+[m[32m      setCartCount(items.length);[m
+[32m+[m[32m    } catch (error) {[m
+[32m+[m[32m      setCartCount(0);[m
+[32m+[m[32m    }[m
+[32m+[m[32m  };[m
+[32m+[m
+[32m+[m[32m  useEffect(() => {[m
+[32m+[m[32m    loadCartCount();[m
+[32m+[m[32m    // eslint-disable-next-line react-hooks/exhaustive-deps[m
+[32m+[m[32m  }, [token]);[m
+[32m+[m
+[32m+[m[32m  // ปิด popup เมื่อคลิกข้างนอก[m
+[32m+[m[32m  useEffect(() => {[m
+[32m+[m[32m    const handleClickOutside = (e) => {[m
+[32m+[m[32m      if (cartPopupRef.current && !cartPopupRef.current.contains(e.target)) {[m
+[32m+[m[32m        setCartOpen(false);[m
+[32m+[m[32m      }[m
+[32m+[m[32m    };[m
+[32m+[m[32m    document.addEventListener("mousedown", handleClickOutside);[m
+[32m+[m[32m    return () => document.removeEventListener("mousedown", handleClickOutside);[m
+[32m+[m[32m  }, []);[m
+[32m+[m
+[32m+[m[32m  const handleCartToggle = async () => {[m
+[32m+[m[32m    const willOpen = !cartOpen;[m
+[32m+[m[32m    setCartOpen(willOpen);[m
+[32m+[m
+[32m+[m[32m    if (!willOpen || !token) return;[m
+[32m+[m
+[32m+[m[32m    setCartLoading(true);[m
+[32m+[m[32m    try {[m
+[32m+[m[32m      const [cartRes, productsRes] = await Promise.all([[m
+[32m+[m[32m        cartService.getCart(),[m
+[32m+[m[32m        productService.getAllProducts(),[m
+[32m+[m[32m      ]);[m
+[32m+[m
+[32m+[m[32m      const items = Array.isArray(cartRes?.data?.items)[m
+[32m+[m[32m        ? cartRes.data.items.filter((item) => item && item.cart_item_id)[m
+[32m+[m[32m        : [];[m
+[32m+[m
+[32m+[m[32m      const productsById = {};[m
+[32m+[m[32m      (Array.isArray(productsRes?.data) ? productsRes.data : []).forEach((p) => {[m
+[32m+[m[32m        productsById[p.product_id] = p;[m
+[32m+[m[32m      });[m
+[32m+[m
+[32m+[m[32m      const enriched = items.map((item) => ({[m
+[32m+[m[32m        ...item,[m
+[32m+[m[32m        product: productsById[item.product_id],[m
+[32m+[m[32m      }));[m
+[32m+[m
+[32m+[m[32m      const total = enriched.reduce([m
+[32m+[m[32m        (sum, item) => sum + Number(item.subtotal ?? item.price * item.quantity ?? 0),[m
+[32m+[m[32m        0,[m
+[32m+[m[32m      );[m
+[32m+[m
+[32m+[m[32m      setCartItems(enriched);[m
+[32m+[m[32m      setCartTotal(total);[m
+[32m+[m[32m      setCartCount(enriched.length);[m
+[32m+[m[32m    } catch (error) {[m
+[32m+[m[32m      setCartItems([]);[m
+[32m+[m[32m      setCartTotal(0);[m
+[32m+[m[32m    } finally {[m
+[32m+[m[32m      setCartLoading(false);[m
+[32m+[m[32m    }[m
+[32m+[m[32m  };[m
+[32m+[m
+[32m+[m[32m  const handleGoToCart = () => {[m
+[32m+[m[32m    setCartOpen(false);[m
+[32m+[m[32m    navigate("/cart");[m
+[32m+[m[32m  };[m
+[32m+[m
+[32m+[m[32m  const handleSearchSubmit = (e) => {[m
+[32m+[m[32m    e.preventDefault();[m
+[32m+[m[32m    navigate("/");[m
+[32m+[m[32m  };[m
+[32m+[m
+   return ([m
+[31m-    <div className="tck-nav-wrap">[m
+[31m-      <div className="tck-nav">[m
+[31m-        <button[m
+[31m-          type="button"[m
+[31m-          className="tck-logo tck-nav-link"[m
+[31m-          onClick={() => navigate("/")}[m
+[31m-        >[m
+[31m-          TleComKub[m
+[31m-        </button>[m
+[31m-[m
+[31m-        <div className="tck-nav-links">[m
+[31m-          <button className="tck-nav-link" onClick={() => navigate("/")}>[m
+[31m-            Home[m
+[31m-          </button>[m
+[32m+[m[32m    <div className="tcknav">[m
+[32m+[m[32m      <style>{`[m
+[32m+[m[32m        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&display=swap');[m
+ [m
+[31m-          <button className="tck-nav-link" onClick={() => navigate("/cart")}>[m
+[31m-            Cart[m
+[31m-          </button>[m
+[32m+[m[32m        .tcknav {[m
+[32m+[m[32m          --accent: #E2574C;[m
+[32m+[m[32m          --accent-dark: #B8362D;[m
+[32m+[m[32m          --accent-tint: #FDEDEB;[m
+[32m+[m[32m          --ink: #1C1F26;[m
+[32m+[m[32m          --line: #E8E8EC;[m
+[32m+[m[32m        }[m
+ [m
+[31m-          <button className="tck-nav-link" onClick={() => navigate("/orders")}>[m
+[31m-            Orders[m
+[31m-          </button>[m
+[32m+[m[32m        .tcknav-utility {[m
+[32m+[m[32m          background: var(--ink);[m
+[32m+[m[32m          color: #D8DAE0;[m
+[32m+[m[32m          font-size: 12.5px;[m
+[32m+[m[32m        }[m
+[32m+[m[32m        .tcknav-utility-inner {[m
+[32m+[m[32m          max-width: 1280px;[m
+[32m+[m[32m          margin: 0 auto;[m
+[32m+[m[32m          padding: 6px 24px;[m
+[32m+[m[32m          display: flex;[m
+[32m+[m[32m          justify-content: flex-end;[m
+[32m+[m[32m          gap: 20px;[m
+[32m+[m[32m        }[m
+[32m+[m[32m        .tcknav-utility-inner button {[m
+[32m+[m[32m          background: none;[m
+[32m+[m[32m          border: none;[m
+[32m+[m[32m          color: inherit;[m
+[32m+[m[32m          font-size: inherit;[m
+[32m+[m[32m          cursor: pointer;[m
+[32m+[m[32m        }[m
+[32m+[m[32m        .tcknav-utility-inner button:hover { color: #fff; }[m
+[32m+[m
+[32m+[m[32m        .tcknav-bar {[m
+[32m+[m[32m          background: #FFFFFF;[m
+[32m+[m[32m          border-bottom: 1px solid var(--line);[m
+[32m+[m[32m        }[m
+[32m+[m[32m        .tcknav-bar-inner {[m
+[32m+[m[32m          max-width: 1280px;[m
+[32m+[m[32m          margin: 0 auto;[m
+[32m+[m[32m          padding: 14px 2
