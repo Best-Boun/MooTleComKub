@@ -1,9 +1,19 @@
 import { NavLink, Link } from "react-router-dom";
 import { Button } from "react-bootstrap";
+import { usePermissions } from "../../context/PermissionContext";
+
+const MENU_ITEMS = [
+  { to: "/admin/dashboard", icon: "bi-speedometer2", label: "Dashboard", pageKey: "dashboard" },
+  { to: "/admin/categories", icon: "bi-grid", label: "Categories", pageKey: "categories" },
+  { to: "/admin/products", icon: "bi-box-seam", label: "Products", pageKey: "products" },
+  { to: "/admin/orders", icon: "bi-receipt", label: "Orders", pageKey: "orders" },
+  { to: "/admin/customers", icon: "bi-people", label: "Customers", pageKey: "customers" },
+];
 
 export default function Sidebar() {
   const storedUser = JSON.parse(localStorage.getItem("user") || "null");
   const isSuperAdmin = storedUser?.role_id === 3;
+  const { canView } = usePermissions();
 
   return (
     <div
@@ -16,30 +26,15 @@ export default function Sidebar() {
       <h4 className="text-center mb-4">Summer Admin</h4>
 
       <div className="nav flex-column flex-grow-1">
-        <NavLink to="/admin/dashboard" className="nav-link text-white">
-          <i className="bi bi-speedometer2 me-2"></i>
-          Dashboard
-        </NavLink>
-
-        <NavLink to="/admin/categories" className="nav-link text-white">
-          <i className="bi bi-grid me-2"></i>
-          Categories
-        </NavLink>
-
-        <NavLink to="/admin/products" className="nav-link text-white">
-          <i className="bi bi-box-seam me-2"></i>
-          Products
-        </NavLink>
-
-        <NavLink to="/admin/orders" className="nav-link text-white">
-          <i className="bi bi-receipt me-2"></i>
-          Orders
-        </NavLink>
-
-        <NavLink to="/admin/customers" className="nav-link text-white">
-          <i className="bi bi-people me-2"></i>
-          Customers
-        </NavLink>
+        {MENU_ITEMS.map(
+          (item) =>
+            (isSuperAdmin || canView(item.pageKey)) && (
+              <NavLink key={item.to} to={item.to} className="nav-link text-white">
+                <i className={`bi ${item.icon} me-2`}></i>
+                {item.label}
+              </NavLink>
+            ),
+        )}
 
         {isSuperAdmin && (
           <NavLink to="/admin/reports" className="nav-link text-white">

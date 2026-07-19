@@ -5,6 +5,7 @@ const CustomerController = require("../controllers/customerController");
 const CustomerModel = require("../models/customerModel");
 const authMiddleware = require("../middlewares/authMiddleware");
 const requireRole = require("../middlewares/roleMiddleware");
+const requirePagePermission = require("../middlewares/pagePermissionMiddleware");
 const ROLES = require("../utils/roles");
 
 const isAdmin = (req) =>
@@ -40,31 +41,41 @@ const preserveStatusForNonAdmin = async (req, res, next) => {
   }
 };
 
-// ดูลูกค้าทั้งหมด (เฉพาะ Admin/SuperAdmin)
+// ดูลูกค้าทั้งหมด (เฉพาะ Admin/SuperAdmin ที่มีสิทธิ์ "มองเห็น" หน้า Customers)
 router.get(
   "/",
   authMiddleware,
   requireRole(ROLES.ADMIN, ROLES.SUPER_ADMIN),
+  requirePagePermission("customers", "view"),
   CustomerController.getAllCustomers,
 );
 
-// ดูลูกค้าตาม ID (เจ้าของ record เองหรือ Admin/SuperAdmin)
-router.get("/:id", authMiddleware, requireSelfOrAdmin, CustomerController.getCustomerById);
+// ดูลูกค้าตาม ID (เจ้าของ record เองหรือ Admin/SuperAdmin ที่มีสิทธิ์ "มองเห็น")
+// requirePagePermission จะข้ามการตรวจให้อัตโนมัติถ้าผู้เรียกเป็นเจ้าของ record เอง (role Customer)
+router.get(
+  "/:id",
+  authMiddleware,
+  requireSelfOrAdmin,
+  requirePagePermission("customers", "view"),
+  CustomerController.getCustomerById,
+);
 
-// แก้ไขข้อมูลลูกค้า (เจ้าของ record เองหรือ Admin/SuperAdmin)
+// แก้ไขข้อมูลลูกค้า (เจ้าของ record เองแก้ได้เสมอ, Admin ต้องมีสิทธิ์ "จัดการ")
 router.put(
   "/:id",
   authMiddleware,
   requireSelfOrAdmin,
+  requirePagePermission("customers", "manage"),
   preserveStatusForNonAdmin,
   CustomerController.updateCustomer,
 );
 
-// ลบลูกค้า (เฉพาะ Admin/SuperAdmin)
+// ลบลูกค้า (เฉพาะ Admin/SuperAdmin ที่มีสิทธิ์ "จัดการ")
 router.delete(
   "/:id",
   authMiddleware,
   requireRole(ROLES.ADMIN, ROLES.SUPER_ADMIN),
+  requirePagePermission("customers", "manage"),
   CustomerController.deleteCustomer,
 );
 
@@ -73,6 +84,7 @@ router.get(
   "/:id/orders",
   authMiddleware,
   requireSelfOrAdmin,
+  requirePagePermission("customers", "view"),
   CustomerController.getCustomerOrders,
 );
 
@@ -81,6 +93,7 @@ router.get(
   "/:id/statistics",
   authMiddleware,
   requireSelfOrAdmin,
+  requirePagePermission("customers", "view"),
   CustomerController.getCustomerStatistics,
 );
 

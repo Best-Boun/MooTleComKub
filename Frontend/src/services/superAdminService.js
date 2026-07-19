@@ -22,25 +22,15 @@ const superAdminService = {
     return response.data;
   },
 
-  // ================= Roles =================
-  async getRoles() {
-    const response = await api.get("/roles");
+  // ================= Admin Page Permissions =================
+  async getAdminPermissionsMatrix() {
+    const response = await api.get("/admin-permissions");
     return response.data;
   },
 
-  async updateRole(id, data) {
-    const response = await api.put(`/roles/${id}`, data);
-    return response.data;
-  },
-
-  async getUsersWithRoles() {
-    const response = await api.get("/roles/users");
-    return response.data;
-  },
-
-  async updateUserRole(userId, roleId) {
-    const response = await api.put(`/roles/users/${userId}`, {
-      role_id: roleId,
+  async updateAdminPermissions(userId, permissions) {
+    const response = await api.put(`/admin-permissions/${userId}`, {
+      permissions,
     });
     return response.data;
   },

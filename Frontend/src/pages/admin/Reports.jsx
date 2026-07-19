@@ -12,6 +12,14 @@ const emptyAdminForm = {
   status: "ACTIVE",
 };
 
+const PAGE_LABELS = {
+  dashboard: "Dashboard",
+  categories: "Categories",
+  products: "Products",
+  orders: "Orders",
+  customers: "Customers",
+};
+
 export default function Reports() {
   const [activeTab, setActiveTab] = useState("admins");
 
@@ -22,16 +30,11 @@ export default function Reports() {
   const [editingAdminId, setEditingAdminId] = useState(null);
   const [adminForm, setAdminForm] = useState(emptyAdminForm);
 
-  // ---------------- Roles ----------------
-  const [roles, setRoles] = useState([]);
-  const [rolesLoading, setRolesLoading] = useState(false);
-
-  // ---------------- Users & Role Assignment ----------------
-  const [allUsers, setAllUsers] = useState([]);
-  const [usersLoading, setUsersLoading] = useState(false);
-  const [showRoleModal, setShowRoleModal] = useState(false);
-  const [editingUser, setEditingUser] = useState(null);
-  const [selectedRoleId, setSelectedRoleId] = useState("");
+  // ---------------- Admin Permissions ----------------
+  const [permPages, setPermPages] = useState([]);
+  const [permAdmins, setPermAdmins] = useState([]);
+  const [permsLoading, setPermsLoading] = useState(false);
+  const [savingUserId, setSavingUserId] = useState(null);
 
   // ---------------- System Logs ----------------
   const [logs, setLogs] = useState([]);
@@ -143,48 +146,66 @@ export default function Reports() {
     }
   };
 
-  // ================= Roles =================
-  const loadRoles = async () => {
-    setRolesLoading(true);
+  // ================= Admin Permissions =================
+  const loadPermissions = async () => {
+    setPermsLoading(true);
     try {
-      const res = await superAdminService.getRoles();
-      setRoles(res.roles || []);
+      const res = await superAdminService.getAdminPermissionsMatrix();
+      setPermPages(res.pages || []);
+      setPermAdmins(res.admins || []);
     } catch (error) {
-      showError(error, "โหลดรายชื่อ Role ไม่สำเร็จ");
+      showError(error, "โหลดสิทธิ์การเข้าถึงไม่สำเร็จ");
     } finally {
-      setRolesLoading(false);
+      setPermsLoading(false);
     }
   };
 
-  // ================= Users & Role Assignment =================
-  const loadUsers = async () => {
-    setUsersLoading(true);
+  // สลับค่า can_view / can_manage ใน state ฝั่ง Frontend เท่านั้น (ยังไม่ยิง API)
+  const toggleLocalPermission = (userId, pageKey, field) => {
+    setPermAdmins((prev) =>
+      prev.map((admin) => {
+        if (admin.user_id !== userId) return admin;
+
+        const current = admin.permissions[pageKey] || {
+          can_view: 0,
+          can_manage: 0,
+        };
+
+        let next = { ...current, [field]: current[field] ? 0 : 1 };
+
+        // ปิด "มองเห็น" แล้วต้องปิด "จัดการ" ตามไปด้วย เพราะจัดการได้ต้องมองเห็นก่อน
+        if (field === "can_view" && !next.can_view) {
+          next.can_manage = 0;
+        }
+
+        // เปิด "จัดการ" ต้องเปิด "มองเห็น" ให้อัตโนมัติด้วย
+        if (field === "can_manage" && next.can_manage) {
+          next.can_view = 1;
+        }
+
+        return {
+          ...admin,
+          permissions: { ...admin.permissions, [pageKey]: next },
+        };
+      }),
+    );
+  };
+
+  const handleSavePermissions = async (admin) => {
+    setSavingUserId(admin.user_id);
     try {
-      const res = await superAdminService.getUsersWithRoles();
-      setAllUsers(res.users || []);
+      const permissions = permPages.map((pageKey) => ({
+        page_key: pageKey,
+        can_view: admin.permissions[pageKey]?.can_view ? 1 : 0,
+        can_manage: admin.permissions[pageKey]?.can_manage ? 1 : 0,
+      }));
+
+      await superAdminService.updateAdminPermissions(admin.user_id, permissions);
+      showSuccess(`บันทึกสิทธิ์ของ ${admin.first_name} ${admin.last_name} เรียบร้อยแล้ว`);
     } catch (error) {
-      showError(error, "โหลดรายชื่อผู้ใช้ไม่สำเร็จ");
+      showError(error, "บันทึกสิทธิ์ไม่สำเร็จ");
     } finally {
-      setUsersLoading(false);
-    }
-  };
-
-  const openEditUserRole = (user) => {
-    setEditingUser(user);
-    setSelectedRoleId(user.role_id ? String(user.role_id) : "");
-    setShowRoleModal(true);
-  };
-
-  const handleSaveUserRole = async (e) => {
-    e.preventDefault();
-
-    try {
-      await superAdminService.updateUserRole(editingUser.user_id, selectedRoleId);
-      showSuccess("อัปเดต Role ของผู้ใช้เรียบร้อยแล้ว");
-      setShowRoleModal(false);
-      loadUsers();
-    } catch (error) {
-      showError(error, "อัปเดต Role ของผู้ใช้ไม่สำเร็จ");
+      setSavingUserId(null);
     }
   };
 
@@ -246,10 +267,7 @@ export default function Reports() {
     // เลื่อนไปทำงานใน microtask ถัดไป เพื่อไม่ให้ setState (loading) เกิดขึ้นแบบ synchronous ใน Effect
     Promise.resolve().then(() => {
       if (activeTab === "admins") loadAdmins();
-      if (activeTab === "roles") {
-        loadRoles();
-        loadUsers();
-      }
+      if (activeTab === "permissions") loadPermissions();
       if (activeTab === "logs") loadLogs(1);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -328,63 +346,93 @@ export default function Reports() {
           </Table>
         </Tab>
 
-        {/* ============ Roles ============ */}
-        <Tab eventKey="roles" title="Roles">
+        {/* ============ Admin Permissions ============ */}
+        <Tab eventKey="permissions" title="Admin Permissions">
           <div className="d-flex justify-content-end my-3">
-            <Button
-              variant="outline-secondary"
-              onClick={() => {
-                loadRoles();
-                loadUsers();
-              }}
-              disabled={usersLoading || rolesLoading}
-            >
+            <Button variant="outline-secondary" onClick={loadPermissions} disabled={permsLoading}>
               <i className="bi bi-arrow-clockwise me-1"></i>
               Refresh
             </Button>
           </div>
 
-          <Table striped bordered hover responsive>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Current Role</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {allUsers.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="text-center text-muted">
-                    {usersLoading ? "Loading..." : "No users"}
-                  </td>
-                </tr>
-              )}
-              {allUsers.map((user) => (
-                <tr key={user.user_id}>
-                  <td>{user.user_id}</td>
-                  <td>
-                    {user.first_name} {user.last_name}
-                  </td>
-                  <td>{user.email}</td>
-                  <td>
-                    <Badge bg="info">{user.role_name || "-"}</Badge>
-                  </td>
-                  <td>
-                    <Button
-                      size="sm"
-                      variant="outline-primary"
-                      onClick={() => openEditUserRole(user)}
-                    >
-                      Edit Role
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </Table>
+          <p className="text-muted">
+            กำหนดสิทธิ์การเข้าถึงแต่ละหน้าใน Admin Dashboard ของ Admin แต่ละคน — "มองเห็น"
+            คือเปิดหน้าดูข้อมูลได้ ส่วน "จัดการ" คือแก้ไข/เพิ่ม/ลบข้อมูลในหน้านั้นได้
+            (ต้องเปิด "มองเห็น" ก่อนจึงจะเปิด "จัดการ" ได้)
+          </p>
+
+          {permAdmins.length === 0 && (
+            <div className="text-center text-muted py-4">
+              {permsLoading ? "Loading..." : "No admin accounts"}
+            </div>
+          )}
+
+          {permAdmins.map((admin) => (
+            <div key={admin.user_id} className="border rounded p-3 mb-3">
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <div>
+                  <div className="fw-bold">
+                    {admin.first_name} {admin.last_name}
+                  </div>
+                  <div className="text-muted small">{admin.email}</div>
+                </div>
+                <Button
+                  size="sm"
+                  variant="primary"
+                  disabled={savingUserId === admin.user_id}
+                  onClick={() => handleSavePermissions(admin)}
+                >
+                  {savingUserId === admin.user_id ? "Saving..." : "Save"}
+                </Button>
+              </div>
+
+              <Table bordered responsive size="sm" className="mb-0">
+                <thead>
+                  <tr>
+                    <th>หน้า</th>
+                    <th className="text-center" style={{ width: 100 }}>
+                      มองเห็น
+                    </th>
+                    <th className="text-center" style={{ width: 100 }}>
+                      จัดการ
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {permPages.map((pageKey) => {
+                    const perm = admin.permissions[pageKey] || {
+                      can_view: 0,
+                      can_manage: 0,
+                    };
+
+                    return (
+                      <tr key={pageKey}>
+                        <td>{PAGE_LABELS[pageKey] || pageKey}</td>
+                        <td className="text-center">
+                          <Form.Check
+                            type="checkbox"
+                            checked={Boolean(perm.can_view)}
+                            onChange={() =>
+                              toggleLocalPermission(admin.user_id, pageKey, "can_view")
+                            }
+                          />
+                        </td>
+                        <td className="text-center">
+                          <Form.Check
+                            type="checkbox"
+                            checked={Boolean(perm.can_manage)}
+                            onChange={() =>
+                              toggleLocalPermission(admin.user_id, pageKey, "can_manage")
+                            }
+                          />
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </Table>
+            </div>
+          ))}
         </Tab>
 
         {/* ============ System Logs ============ */}
@@ -574,54 +622,6 @@ export default function Reports() {
           </Modal.Body>
           <Modal.Footer>
             <Button variant="secondary" onClick={() => setShowAdminModal(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" variant="primary">
-              Save
-            </Button>
-          </Modal.Footer>
-        </Form>
-      </Modal>
-
-      {/* ============ Role Modal ============ */}
-      <Modal show={showRoleModal} onHide={() => setShowRoleModal(false)}>
-        <Form onSubmit={handleSaveUserRole}>
-          <Modal.Header closeButton>
-            <Modal.Title>Edit User Role</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Form.Group className="mb-3">
-              <Form.Label>User</Form.Label>
-              <Form.Control
-                plaintext
-                readOnly
-                value={
-                  editingUser
-                    ? `${editingUser.first_name} ${editingUser.last_name} (${editingUser.email})`
-                    : ""
-                }
-              />
-            </Form.Group>
-            <Form.Group>
-              <Form.Label>Role</Form.Label>
-              <Form.Select
-                required
-                value={selectedRoleId}
-                onChange={(e) => setSelectedRoleId(e.target.value)}
-              >
-                <option value="" disabled>
-                  Select a role
-                </option>
-                {roles.map((role) => (
-                  <option key={role.role_id} value={role.role_id}>
-                    {role.role_name}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-          </Modal.Body>
-          <Modal.Footer>
-            <Button variant="secondary" onClick={() => setShowRoleModal(false)}>
               Cancel
             </Button>
             <Button type="submit" variant="primary">
