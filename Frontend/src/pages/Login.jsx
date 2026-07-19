@@ -119,7 +119,7 @@ const Login = () => {
                   style={{ fontSize: "60px" }}
                 ></i>
 
-                <h2 className="fw-bold mt-3">LogHao</h2>
+                <h2 className="fw-bold mt-3">Login</h2>
 
                 <p className="text-muted">Sign in to continue</p>
               </div>
