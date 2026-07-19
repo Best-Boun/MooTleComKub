@@ -720,6 +720,54 @@ export default function Homepage() {
           object-fit: cover;
           display: block;
         }
+
+        .tck2-sold-overlay {
+  position: absolute;
+  inset: 0;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: rgba(255,255,255,.35);
+  backdrop-filter: blur(2px);
+}
+
+.tck2-sold-overlay::before,
+.tck2-sold-overlay::after{
+  content:"";
+  position:absolute;
+
+  width:170%;
+  height:3px;
+
+  background:rgba(255,255,255,.8);
+}
+
+.tck2-sold-overlay::before{
+  transform:rotate(45deg);
+}
+
+.tck2-sold-overlay::after{
+  transform:rotate(-45deg);
+}
+
+.tck2-sold-overlay span{
+  z-index:10;
+
+  background:rgba(0,0,0,.55);
+
+  color:#fff;
+
+  padding:8px 18px;
+
+  border-radius:999px;
+
+  font-size:18px;
+  font-weight:700;
+  letter-spacing:2px;
+}
+
         .tck2-brand-tag {
           position: absolute;
           top: 8px;
@@ -1291,6 +1339,11 @@ export default function Homepage() {
                         }
                         alt={product.product_name}
                       />
+                      {Number(product.stock) <= 0 && (
+                        <div className="tck2-sold-overlay">
+                          <span>SOLD OUT</span>
+                        </div>
+                      )}
                       {product.brand_name && (
                         <span className="tck2-brand-tag">
                           {product.brand_name}

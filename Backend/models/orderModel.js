@@ -117,11 +117,13 @@ WHERE o.order_id = ?
       const [cartItems] = await connection.query(
         `
         SELECT
-          ci.product_id,
-          ci.quantity,
-          ci.subtotal,
-          p.product_name,
-          p.price
+  ci.product_id,
+  ci.quantity,
+  ci.subtotal,
+  p.product_name,
+  p.price,
+  p.stock,
+  p.status
         FROM cart_items ci
         LEFT JOIN products p
           ON ci.product_id = p.product_id
@@ -133,6 +135,25 @@ WHERE o.order_id = ?
       if (cartItems.length === 0) {
         await connection.rollback();
         return { success: false, error: "Cart is empty" };
+      }
+
+      // ตรวจสอบสต็อกล่าสุด
+      for (const item of cartItems) {
+        if (item.status !== "ACTIVE") {
+          await connection.rollback();
+          return {
+            success: false,
+            error: `${item.product_name} ไม่พร้อมจำหน่าย`,
+          };
+        }
+
+        if (Number(item.stock) < Number(item.quantity)) {
+          await connection.rollback();
+          return {
+            success: false,
+            error: `${item.product_name} มีสินค้าไม่เพียงพอ`,
+          };
+        }
       }
 
       const [addressRows] = await connection.query(
