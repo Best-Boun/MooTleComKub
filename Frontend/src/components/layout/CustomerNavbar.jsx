@@ -7,7 +7,7 @@ import cartService from "../../services/cartService";
 import productService from "../../services/productService";
 import logo from "../../assets/ChatGPT_Image_Jul_19__2026__04_40_50_PM-removebg-preview.png";
 
-const API_URL = "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL.replace("/api", "");
 
 export default function CustomerNavbar() {
   const navigate = useNavigate();
@@ -504,10 +504,14 @@ export default function CustomerNavbar() {
                     <>
                       {cartItems.slice(0, 3).map((item) => {
                         const name =
-                          item.product?.product_name || `สินค้า #${item.product_id}`;
-                        const image = item.product?.image
-                          ? `${API_URL}${item.product.image}`
-                          : "https://placehold.co/100x100?text=No+Image";
+  item.product_name || item.product?.product_name || `สินค้า #${item.product_id}`;
+
+const image =
+  item.image
+    ? `${API_URL}${item.image}`
+    : item.product?.image
+      ? `${API_URL}${item.product.image}`
+      : "https://placehold.co/100x100?text=No+Image";
 
                         return (
                           <div className="tcknav-cart-item" key={item.cart_item_id}>
