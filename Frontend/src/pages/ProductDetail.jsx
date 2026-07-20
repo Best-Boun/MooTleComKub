@@ -7,7 +7,7 @@ import cartService from "../services/cartService";
 import CustomerLayout from "../components/layout/CustomerLayout";
 import "../styles/tckTheme.css";
 
-const API_URL = "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL.replace("/api", "");
 
 export default function ProductDetail() {
   const { id } = useParams();
