@@ -1,5 +1,7 @@
 import { Badge, Button, Table } from "react-bootstrap";
 
+const API_URL = import.meta.env.VITE_API_URL.replace("/api", "");
+
 export default function ProductTable({
   products,
   onDelete,
@@ -37,16 +39,16 @@ export default function ProductTable({
 
               <td>
                 <img
-                  src={
-                    product.image
-                      ? `http://localhost:5000${product.image}`
-                      : "https://placehold.co/60x60?text=No+Image"
-                  }
-                  alt={product.product_name}
-                  width="60"
-                  height="60"
-                  style={{ objectFit: "cover" }}
-                />
+  src={
+    product.image
+      ? `${API_URL}${product.image}`
+      : "https://placehold.co/60x60?text=No+Image"
+  }
+  alt={product.product_name}
+  width="60"
+  height="60"
+  style={{ objectFit: "cover" }}
+/>
               </td>
 
               <td>{product.product_name}</td>
