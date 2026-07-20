@@ -6,6 +6,8 @@ import categoryService from "../../services/categoryService";
 import specTemplateService from "../../services/specTemplateService";
 import Swal from "sweetalert2";
 
+const API_URL = import.meta.env.VITE_API_URL.replace("/api", "");
+
 export default function ProductForm({
   mode,
   product,
@@ -140,8 +142,8 @@ export default function ProductForm({
       });
 
       if (product.image) {
-        setPreview(`http://localhost:5000${product.image}`);
-      }
+  setPreview(`${API_URL}${product.image}`);
+}
     } else {
       setPreview("");
     }
