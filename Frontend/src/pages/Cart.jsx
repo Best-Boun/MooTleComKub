@@ -5,7 +5,7 @@ import cartService from "../services/cartService";
 import productService from "../services/productService";
 import CustomerLayout from "../components/layout/CustomerLayout";
 
-const API_URL = "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL.replace("/api", "");
 
 export default function Cart() {
   const navigate = useNavigate();
