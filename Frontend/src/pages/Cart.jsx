@@ -399,12 +399,12 @@ export default function Cart() {
             <>
               <div className="tck-cart-list">
                 {items.map((item) => {
-                  const product = productsById[item.product_id];
                   const name =
-                    product?.product_name || `สินค้า #${item.product_id}`;
-                  const image = product?.image
-                    ? `${API_URL}${product.image}`
-                    : "https://placehold.co/150x150?text=No+Image";
+  item.product_name || `สินค้า #${item.product_id}`;
+
+const image = item.image
+  ? `${API_URL}${item.image}`
+  : "https://placehold.co/150x150?text=No+Image";
                   const isUpdating = updatingId === item.cart_item_id;
                   const atMaxStock =
                     item.stock != null && item.quantity >= item.stock;
