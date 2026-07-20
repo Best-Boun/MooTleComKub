@@ -10,7 +10,7 @@ import Footer from "../components/layout/Footer";
 import logo from "../assets/ChatGPT_Image_Jul_19__2026__04_40_50_PM-removebg-preview.png";
 
 
-const API_URL = "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL.replace("/api", "");
 
 const SORT_OPTIONS = [
   { value: "newest", label: "ล่าสุด" },
